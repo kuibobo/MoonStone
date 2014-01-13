@@ -1,0 +1,12 @@
+plugins/akismet
+plugins/buddypress
+plugins/xmail
+plugins/categorypress/.svn
+plugins/hello.php
+plugins/index.php
+themes
+misc
+upgrade
+uploads
+index.php
+debug.log
