@@ -72,10 +72,17 @@ class CP_Posts_Component extends CP_Component {
 		parent::setup_globals( $globals );
 		
 		/** Single Post Globals *****************/
-		if ( cp_is_posts_component() && $post_id = CP_Posts_Post::post_exists( cp_current_post() ) ) {
-		} else {
-			$this->current_post = 0;
-		}
+		$this->current_post = 0;
+		if ( cp_is_posts_component() ) {
+			$categories = cp_current_categories();
+						
+			if ( !empty( $categories ) && $post_id = CP_Posts_Post::post_exists( cp_current_post() ) ) {
+				foreach( $categories as $slug ) {
+					if ( !CP_Categories_Category::category_exists( $slug ) )
+						break;
+				}
+			}
+		} 
 		
 		if ( cp_is_posts_component() && empty( $this->current_post ) && cp_current_post() ) {
 			cp_do_404();

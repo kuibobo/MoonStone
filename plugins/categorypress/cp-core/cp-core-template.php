@@ -39,6 +39,15 @@ function cp_is_current_component( $component ) {
 	return $is_current_component;
 }
 
+function cp_current_categories() {
+	global $cp;
+	
+	if ( empty( $cp->current_categories ) )
+		return '';
+	
+	return $cp->current_categories;
+}
+
 function cp_current_category() {
 	global $cp;
 	

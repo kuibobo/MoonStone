@@ -83,15 +83,15 @@ class CP_Posts_Post {
 	* @return string|null ID of the group, if one is found, else null.
 	*/
 	public static function post_exists( $post_id, $table_name = false ) {
-		global $wpdb, $ppy;
+		global $wpdb, $cp;
 		
 		if ( empty( $table_name ) )
-			$table_name = $bp->groups->table_name;
+			$table_name = $cp->posts->table_name;
 		
 		if ( empty( $slug ) )
 			return false;
 			
-		$retval = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM {$cp->posts->table_name} WHERE id = %d", $post_id ) );
+		$retval = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM {$table_name} WHERE id = %d", $post_id ) );
 		
 		return $retval;
 	}

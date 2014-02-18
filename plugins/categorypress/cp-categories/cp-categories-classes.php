@@ -104,4 +104,19 @@ class CP_Categories_Category {
 
 		return $wpdb->get_var( "SELECT COUNT(id) FROM {$cp->categories->table_name}" );
 	}
+	
+	/** Static Methods ****************************************************/
+	public static function category_exists( $slug, $table_name = false ) {
+		global $wpdb, $cp;
+		
+		if ( empty( $table_name ) )
+			$table_name = $cp->categories->table_name;
+		
+		if ( empty( $slug ) )
+			return false;
+			
+		$retval = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM {$table_name} WHERE slug = %s", $slug ) );
+		
+		return $retval;
+	}
 }
