@@ -39,6 +39,9 @@ class CP_Component {
 		add_action( 'cp_setup_globals', array ( $this, 'setup_globals' ), 10);
 
 		add_action( 'cp_include',       array ( $this, 'includes'      ), 8);
+		
+		// Setup screen
+		add_action( 'cp_setup_nav',       array( $this, 'setup_screens' ), 10 );
 	}
 	
 	function setup_globals( $args = '' ) {
@@ -54,6 +57,11 @@ class CP_Component {
 				$this->{$global_name} = $table_name;
 			}
 		}
+	}
+	
+	public function setup_screens( $screen_function = '' ) {
+		if ( is_callable( $screen_function ) ) 
+			add_action( 'cp_screens', $screen_function, 3 );
 	}
 	
 	public function includes( $includes = array() ) {

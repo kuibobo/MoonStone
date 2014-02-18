@@ -46,7 +46,7 @@ class CP_Posts_Component extends CP_Component {
 	}
 
 
-	function setup_globals() {
+	public function setup_globals() {
 		global $cp;
 
 		if ( !defined( 'CP_POSTS_SLUG' ) )
@@ -70,6 +70,31 @@ class CP_Posts_Component extends CP_Component {
 		);
 
 		parent::setup_globals( $globals );
+		
+		/** Single Post Globals *****************/
+		if ( cp_is_posts_component() && $post_id = CP_Posts_Post::post_exists( cp_current_post() ) ) {
+		} else {
+			$this->current_post = 0;
+		}
+		
+		if ( cp_is_posts_component() && empty( $this->current_post ) && cp_current_post() ) {
+			cp_do_404();
+			return;
+		}
+	}
+	
+	public function setup_screens( $screen_function = '' ) {
+		
+		/** is single page ********************/
+		if ( cp_is_posts_component() ) {
+			$post = cp_current_post();
+			if ( empty( $post ) ) 
+				$screen_function = 'cp_posts_screen_category';
+			else
+				$screen_function = 'cp_posts_screen_single';
+			
+			parent::setup_screens( $screen_function );
+		}
 	}
 }
 

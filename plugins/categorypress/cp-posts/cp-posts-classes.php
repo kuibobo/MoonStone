@@ -50,15 +50,7 @@ class CP_Posts_Post {
 
 		return true;
 	}
-
-	function exists() {
-		global $wpdb, $ppy;
 		
-		$retval = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM {$cp->posts->table_name} WHERE id = %d", $this->id ) );
-		
-		return $retval;
-	}
-	
 	function delete( $id = null ) {
 		global $wpdb, $ppy;
 		
@@ -78,5 +70,41 @@ class CP_Posts_Post {
 		global $wpdb, $ppy;
 		
 		return $wpdb->query( $wpdb->prepare( "DELETE FROM {$cp->posts->table_name} WHERE author = %d", $author ) );
+	}
+	
+	/** Static Methods ****************************************************/
+	
+	/**
+	* Get whether a post exists for a given slug.
+	*
+	* @param string $slug Slug to check.
+	* @param string $table_name Optional. Name of the table to check
+	*        against. Default: $bp->groups->table_name.
+	* @return string|null ID of the group, if one is found, else null.
+	*/
+	public static function post_exists( $post_id, $table_name = false ) {
+		global $wpdb, $ppy;
+		
+		if ( empty( $table_name ) )
+			$table_name = $bp->groups->table_name;
+		
+		if ( empty( $slug ) )
+			return false;
+			
+		$retval = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM {$cp->posts->table_name} WHERE id = %d", $post_id ) );
+		
+		return $retval;
+	}
+	
+	/**
+	* Get the ID of a post by the post's slug.
+	*
+	* Alias of {@link CP_Posts_Post::post_exists()}.
+	*
+	* @param string $slug See {@link CP_Posts_Post::post_exists()}.
+	* @return string|null See {@link CP_Posts_Post::post_exists()}.
+	*/
+	public static function get_id_from_slug( $slug ) {
+		return CP_Posts_Post::post_exists( $slug );
 	}
 }

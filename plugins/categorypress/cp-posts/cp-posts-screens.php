@@ -3,7 +3,7 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
-function cp_posts_screen_index() {
+function cp_posts_screen_category() {
 	if ( cp_is_posts_component() ) {
 		cp_update_is_directory( true, 'posts' );
 		
@@ -12,4 +12,9 @@ function cp_posts_screen_index() {
 		cp_core_load_template( apply_filters( 'cp_posts_screen_index', 'posts/index' ) );
 	}
 }
-add_action( 'cp_screens', 'cp_posts_screen_index' );
+
+function cp_posts_screen_single() {
+	if ( cp_is_posts_component() ) {
+
+	}
+}

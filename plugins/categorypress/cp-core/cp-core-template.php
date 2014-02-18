@@ -39,6 +39,22 @@ function cp_is_current_component( $component ) {
 	return $is_current_component;
 }
 
+function cp_current_category() {
+	global $cp;
+	
+	if ( empty( $cp->current_categories ) )
+		return '';
+		
+	return $cp->current_categories[ count( $cp->current_categories ) - 1 ];
+}
+
+function cp_current_post() {
+	global $cp;
+	
+	$current_post = !empty( $cp->current_post ) ? $cp->current_post : '';
+	return $current_post;
+}
+
 /**
  * Is this a BuddyPress component?
  *

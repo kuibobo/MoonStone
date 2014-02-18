@@ -84,6 +84,7 @@ if ( !class_exists( 'CategoryPress' ) ) :
 			
 			$this->versions();
 			
+			require( $this->plugin_dir . 'cp-core/cp-core-dependency.php' );
 			require( $this->plugin_dir . 'cp-core/cp-core-actions.php' );
 			require( $this->plugin_dir . 'cp-core/cp-core-update.php' );
 			require( $this->plugin_dir . 'cp-core/cp-core-options.php' );
@@ -115,7 +116,7 @@ if ( !class_exists( 'CategoryPress' ) ) :
 			/**
 			 * @var string Name of the current BuddyPress item (secondary)
 			 */
-			$this->current_item = '';
+			$this->current_post = '';
 			
 			$this->current_categories = '';
 						

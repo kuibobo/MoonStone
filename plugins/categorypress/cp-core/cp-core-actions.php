@@ -16,6 +16,7 @@ add_action( 'cp_loaded',  'cp_include',          4 );
 
 add_action( 'cp_init',    'cp_core_set_uri_globals',    2  );
 add_action( 'cp_init',    'cp_setup_globals',           5 );
+add_action( 'cp_init',    'cp_setup_nav',                  6  );
 
 add_action( 'cp_template_redirect', 'cp_actions', 4 );
 add_action( 'cp_template_redirect', 'cp_screens', 6 );

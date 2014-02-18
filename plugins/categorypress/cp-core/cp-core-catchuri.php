@@ -269,7 +269,17 @@ function cp_core_set_uri_globals() {
 		}
 	}
 
-	// Set the current action
+	if ( !empty( $cp_uri ) ) {
+		$post_item = $cp_uri[ count( $cp_uri ) - 1 ];
+		$str_len = strlen( $post_item );
+		if ( strtolower( substr( $post_item, $str_len - 6, $str_len - 1 ) ) == '.shtml' ) {
+			$post_item = array_pop( $cp_uri );
+			$post_item = explode( '.', $post_item );
+			$cp->current_post = $post_item[0];
+		}
+	}
+	array_shift( $cp_uri );
+	// Set the current categories
 	$cp->current_categories = array_slice( $cp_uri, $uri_offset + 1 );//isset( $cp_uri[$uri_offset + 1] ) ? $cp_uri[$uri_offset + 1] : '';
 
 	// Slice the rest of the $cp_uri array and reset offset
