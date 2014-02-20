@@ -63,15 +63,6 @@ class CP_Categories_Category {
 		return $retval;
 	}
 
-	function category_exists( $slug, $type = 0, $parent_id = 0 ) {
-		global $wpdb, $cp;
-
-		if ( empty( $slug ) )
-			return false;
-
-		return $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$cp->categories->table_name} WHERE parent AND slug = %s AND type = %d", $parent_id, $slug, $type ) );
-	}
-
 	function get_id_from_slug( $slug, $type = 0, $parent_id = 0 ) {
 		return CP_Categories_Category::category_exists( $slug, $type, $parent_id );
 	}
@@ -106,16 +97,22 @@ class CP_Categories_Category {
 	}
 	
 	/** Static Methods ****************************************************/
-	public static function category_exists( $slug, $table_name = false ) {
+	//function category_exists( $slug, $type = 0, $parent_id = 0 ) {
+	//	global $wpdb, $cp;
+	//
+	//	if ( empty( $slug ) )
+	//		return false;
+	//
+	//	return $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$cp->categories->table_name} WHERE parent AND slug = %s AND type = %d", $parent_id, $slug, $type ) );
+	//}
+	
+	public static function category_exists( $slug ) {
 		global $wpdb, $cp;
-		
-		if ( empty( $table_name ) )
-			$table_name = $cp->categories->table_name;
-		
+				
 		if ( empty( $slug ) )
 			return false;
 			
-		$retval = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM {$table_name} WHERE slug = %s", $slug ) );
+		$retval = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM {$cp->categories->table_name} WHERE slug = %s", $slug ) );
 		
 		return $retval;
 	}

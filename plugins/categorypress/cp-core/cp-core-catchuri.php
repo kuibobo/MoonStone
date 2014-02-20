@@ -280,7 +280,7 @@ function cp_core_set_uri_globals() {
 	}
 	array_shift( $cp_uri );
 	// Set the current categories
-	$cp->current_categories = array_slice( $cp_uri, $uri_offset + 1 );//isset( $cp_uri[$uri_offset + 1] ) ? $cp_uri[$uri_offset + 1] : '';
+	$cp->current_categories = $cp_uri;// array_slice( $cp_uri, $uri_offset + 1 );//isset( $cp_uri[$uri_offset + 1] ) ? $cp_uri[$uri_offset + 1] : '';
 
 	// Slice the rest of the $cp_uri array and reset offset
 	$cp_uri      = array_slice( $cp_uri, $uri_offset + 2 );

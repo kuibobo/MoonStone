@@ -414,3 +414,27 @@ function cp_update_is_directory( $is_directory = false, $component = '' ) {
 	
 	$bp->is_directory = apply_filters( 'cp_update_is_directory', $is_directory, $component );
 }
+
+/**
+ * Sanitize an 'order' parameter for use in building SQL queries.
+ *
+ * Strings like 'DESC', 'desc', ' desc' will be interpreted into 'DESC'.
+ * Everything else becomes 'ASC'.
+ *
+ * @since BuddyPress (1.8.0)
+ *
+ * @param string $order The 'order' string, as passed to the SQL constructor.
+ * @return string The sanitized value 'DESC' or 'ASC'.
+ */
+function cp_esc_sql_order( $order = '' ) {
+	$order = strtoupper( trim( $order ) );
+	return 'DESC' === $order ? 'DESC' : 'ASC';
+}
+
+function cp_get_thumbnail_url ( $url, $size = array( 80, 80 ) ) {
+	if ( !empty( $url ) )
+		return $url;
+	
+	$url = get_template_directory_uri() . '/img/thumb/' . $size[0] . '_' . $size[1] . '.png';
+	return $url;
+}

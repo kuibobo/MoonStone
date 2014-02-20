@@ -73,27 +73,34 @@ class CP_Posts_Component extends CP_Component {
 		
 		/** Single Post Globals *****************/
 		$this->current_post = 0;
+		$this->category_verifed = true;
 		if ( cp_is_posts_component() ) {
 			$categories = cp_current_categories();
 						
-			if ( !empty( $categories ) && $post_id = CP_Posts_Post::post_exists( cp_current_post() ) ) {
+			if ( !empty( $categories ) ) {
 				foreach( $categories as $slug ) {
-					if ( !CP_Categories_Category::category_exists( $slug ) )
+					if ( !CP_Categories_Category::category_exists( $slug ) ) {
+						$this->category_verifed = false;
 						break;
+					}
 				}
 			}
+			
+			if ( $this->category_verifed == false ) {
+				cp_do_404();
+				return;
+			}
+			
+			if ( $post_id = CP_Posts_Post::post_exists( cp_current_post() ) ) {
+				
+			}
 		} 
-		
-		if ( cp_is_posts_component() && empty( $this->current_post ) && cp_current_post() ) {
-			cp_do_404();
-			return;
-		}
 	}
 	
 	public function setup_screens( $screen_function = '' ) {
 		
 		/** is single page ********************/
-		if ( cp_is_posts_component() ) {
+		if ( $this->category_verifed && cp_is_posts_component() ) {
 			$post = cp_current_post();
 			if ( empty( $post ) ) 
 				$screen_function = 'cp_posts_screen_category';
