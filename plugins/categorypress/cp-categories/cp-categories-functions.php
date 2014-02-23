@@ -114,8 +114,13 @@ function categories_update_categorymeta( $category_id, $meta_key, $meta_value ) 
 	return true;
 }
 
-function categories_get_id( $category_slug ) {
-	return (int)CP_Categories_Category::category_exists( $category_slug );
+function cp_categories_get_current_id() {
+	$category_slug = cp_current_category();
+	return cp_categories_get_id( $category_slug );
+}
+
+function cp_categories_get_id( $category_slug ) {
+	return (int) CP_Categories_Category::category_exists( $category_slug );
 }
 
 function categories_get_categories( $args = '' ) {

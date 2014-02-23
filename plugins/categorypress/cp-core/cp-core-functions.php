@@ -435,6 +435,18 @@ function cp_get_thumbnail_url ( $url, $size = array( 80, 80 ) ) {
 	if ( !empty( $url ) )
 		return $url;
 	
-	$url = get_template_directory_uri() . '/img/thumb/' . $size[0] . '_' . $size[1] . '.png';
+	$url = get_template_directory_uri() . '/images/thumb/' . $size[0] . '_' . $size[1] . '.png';
 	return $url;
+}
+
+function cp_human_time_diff ( $from, $to = '', $less_than = DAY_IN_SECONDS ) {
+	if ( empty( $to ) )
+		$to = time();
+	
+	$diff = (int) abs( $to - $from );
+	
+	if ( $diff < WEEK_IN_SECONDS ) 
+		return human_time_diff( $from, $to );
+	else
+		return date( 'Y-m-d', $from );
 }

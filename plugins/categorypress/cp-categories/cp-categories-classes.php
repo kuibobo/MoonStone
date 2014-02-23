@@ -112,7 +112,7 @@ class CP_Categories_Category {
 		if ( empty( $slug ) )
 			return false;
 			
-		$retval = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM {$cp->categories->table_name} WHERE slug = %s", $slug ) );
+		$retval = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$cp->categories->table_name} WHERE slug = %s", $slug ) );
 		
 		return $retval;
 	}
