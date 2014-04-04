@@ -96,7 +96,7 @@ class CP_Posts_Component extends CP_Component {
 				return;
 			}
 			
-			if ( $post_id = CP_Posts_Post::post_exists( cp_current_post() ) ) {
+			if ( $post_id = CP_Post::post_exists( cp_current_post() ) ) {
 				
 			}
 		} 
