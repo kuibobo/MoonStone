@@ -2,7 +2,17 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
+class CP_Categories_CategoryType {
+	public static $MASTER   = 0;
+	public static $SLAVE    = 1;
+	public static $BRAND    = 2;
+}
+
 class CP_Categories_Category {
+	
+	
+	
+	
 	var $id;
 	var $parent_id;
 	var $name;
@@ -112,8 +122,91 @@ class CP_Categories_Category {
 		if ( empty( $slug ) )
 			return false;
 			
-		$retval = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM {$cp->categories->table_name} WHERE slug = %s", $slug ) );
+		$retval = $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$cp->categories->table_name} WHERE slug = %s", $slug ) );
 		
 		return $retval;
 	}
+	
+	public static function get_parent_slug( $slug ) {
+		global $wpdb, $cp;
+		
+		if ( empty( $slug ) )
+			return false;
+		
+		$retval = $wpdb->get_var( $wpdb->prepare( "SELECT slug FROM {$cp->categories->table_name} WHERE id = (SELECT parent FROM {$cp->categories->table_name} WHERE slug = %s)", $slug ) );
+		
+		return $retval;
+	}
+
+	public static function get( $args = array() ) {
+		global $wpdb;
+		
+		$defaults = array(
+				'type'            => null,
+				'orderby'         => 'date_created',
+				'order'           => 'DESC',
+				'per_page'        => null,
+				'page'            => null,
+				'parent_id'       => 0,
+				'search_terms'    => false,
+				'meta_query'      => false,
+				'include'         => false,
+				'populate_extras' => true,
+				'exclude'         => false,
+				'show_hidden'     => false,
+				);
+		
+		$r = wp_parse_args( $args, $defaults );
+		
+		$sql       = array();
+		$total_sql = array();
+		
+		$sql['select'] = "SELECT *";
+		$sql['from']   = " FROM {$cp->categories->table_name} c";
+		
+		if ( ! empty( $r['parent_id'] ) ) 
+			$sql['parent_where'] =  $wpdb->prepare( " AND c.parent = %d", $r['parent_id'] );
+			
+		$sql['where'] = "";
+		
+		/** Order/orderby ********************************************/
+		
+		$order   = $r['order'];
+		$orderby = $r['orderby'];
+
+		// If a 'type' parameter was passed, parse it and overwrite
+		// 'order' and 'orderby' params passed to the function
+		if (  ! empty( $r['type'] ) ) {
+			$order_orderby = self::convert_type_to_order_orderby( $r['type'] );
+			
+			// If an invalid type is passed, $order_orderby will be
+			// an array with empty values. In this case, we stick
+			// with the default values of $order and $orderby
+			if ( ! empty( $order_orderby['order'] ) ) {
+				$order = $order_orderby['order'];
+			}
+			
+			if ( ! empty( $order_orderby['orderby'] ) ) {
+				$orderby = $order_orderby['orderby'];
+			}
+		}
+		
+		// Sanitize 'order'
+		$order = bp_esc_sql_order( $order );
+		
+		// Convert 'orderby' into the proper ORDER BY term
+		$orderby = self::convert_orderby_to_order_by_term( $orderby );
+		
+		// Random order is a special case
+		if ( 'rand()' === $orderby ) {
+			$sql[] = "ORDER BY rand()";
+		} else {
+			$sql[] = "ORDER BY {$orderby} {$order}";
+		}
+		
+		if ( ! empty( $r['per_page'] ) && ! empty( $r['page'] ) ) {
+			$sql['pagination'] = $wpdb->prepare( "LIMIT %d, %d", intval( ( $r['page'] - 1 ) * $r['per_page']), intval( $r['per_page'] ) );
+		}
+	}
+
 }

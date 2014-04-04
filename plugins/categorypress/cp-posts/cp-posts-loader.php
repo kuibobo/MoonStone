@@ -78,12 +78,17 @@ class CP_Posts_Component extends CP_Component {
 			$categories = cp_current_categories();
 						
 			if ( !empty( $categories ) ) {
-				foreach( $categories as $slug ) {
-					if ( !CP_Categories_Category::category_exists( $slug ) ) {
+				$category_cout = count( $categories );
+				
+				for ( $i = $category_cout - 1; $i > 0; $i-- ) {
+					if ( !categories_check_category_exists( $categories[ $i ], $categories[ $i - 1 ] ) ) {
 						$this->category_verifed = false;
 						break;
 					}
 				}
+				
+				if ( $this->category_verifed == true )
+					$this->category_verifed = categories_check_category_exists( $categories[0] );
 			}
 			
 			if ( $this->category_verifed == false ) {

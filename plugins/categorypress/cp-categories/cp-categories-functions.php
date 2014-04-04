@@ -12,19 +12,12 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
-function categories_get_category( $args = '' ) {
-	$defaults = array(
-		'category_id' => false,
-		'load_users'  => false
-	);
+function categories_get_category( $category_id ) {
 
-	$args = wp_parse_args( $args, $defaults );
-	extract( $args, EXTR_SKIP );
-
-	$cache_key = 'cp_categories_category_' . $category_id . ( $load_users ? '_load_users' : '_noload_users' );
+	$cache_key = 'cp_categories_category_' . $category_id ;
 
 	if ( !$category = wp_cache_get( $cache_key, 'cp' ) ) {
-		$category = new CP_Categories_Category( $category_id, true, $load_users );
+		$category = new CP_Categories_Category( $category_id );
 		wp_cache_set( $cache_key, $category, 'cp' );
 	}
 
@@ -124,12 +117,10 @@ function categories_get_categories( $args = '' ) {
 		'type'            => false,    // active, newest, alphabetical, random, popular, most-forum-topics or most-forum-posts
 		'order'           => 'DESC',   // 'ASC' or 'DESC'
 		'orderby'         => 'date_created', // date_created, last_activity, total_member_count, name, random
-		'user_id'         => false,    // Pass a user_id to limit to only categories that this user is a member of
+		'parent'          => false,    // Pass a user_id to limit to only categories that this user is a member of
 		'include'         => false,    // Only include these specific categories (category_ids)
 		'exclude'         => false,    // Do not include these specific categories (category_ids)
 		'search_terms'    => false,    // Limit to categories that match these search terms
-		'meta_query'      => false,    // Filter by categorymeta. See WP_Meta_Query for syntax
-		'show_hidden'     => false,    // Show hidden categories to non-admins
 		'per_page'        => 20,       // The number of results to return per page
 		'page'            => 1,        // The page to return if limiting per page
 		'populate_extras' => true,     // Fetch meta such as is_banned and is_member
@@ -139,12 +130,10 @@ function categories_get_categories( $args = '' ) {
 
 	$categories = CP_Categories_Category::get( array(
 		'type'            => $r['type'],
-		'user_id'         => $r['user_id'],
+		'parent'          => $r['user_id'],
 		'include'         => $r['include'],
 		'exclude'         => $r['exclude'],
 		'search_terms'    => $r['search_terms'],
-		'meta_query'      => $r['meta_query'],
-		'show_hidden'     => $r['show_hidden'],
 		'per_page'        => $r['per_page'],
 		'page'            => $r['page'],
 		'populate_extras' => $r['populate_extras'],
@@ -183,6 +172,21 @@ function categories_total_categories_for_user( $user_id = 0 ) {
 	}
 
 	return $count;
+}
+
+function categories_check_category_exists( $slug, $parent_slug = '' ) {
+	$category_exists = false;
+
+	if ( empty( $slug ) ) 
+		return false;
+		
+	$category_exists = CP_Categories_Category::category_exists( $slug );
+	
+	if ( $category_exists && !empty( $parent_slug ) ) {
+		$category_exists = CP_Categories_Category::get_parent_slug( $slug ) == $parent_slug;
+	}
+	
+	return $category_exists;
 }
 
 function cp_do_404( $redirect = 'remove_canonical_direct' ) {

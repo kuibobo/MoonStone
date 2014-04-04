@@ -435,6 +435,31 @@ function cp_get_thumbnail_url ( $url, $size = array( 80, 80 ) ) {
 	if ( !empty( $url ) )
 		return $url;
 	
-	$url = get_template_directory_uri() . '/img/thumb/' . $size[0] . '_' . $size[1] . '.png';
+	$url = get_template_directory_uri() . '/images/thumb/' . $size[0] . '_' . $size[1] . '.png';
 	return $url;
+}
+
+function cp_get_short_time( $the_time ) {
+	$now_time = date( "Y-m-d H:i:s" );
+	$now_time = strtotime( $now_time );
+	$show_time = strtotime( $the_time );
+	$dur = $now_time - $show_time;
+	
+	if ( $dur < 60 ) {
+		return $dur.'秒前';
+	} else {
+		if ( $dur < 3600 ) {
+			return floor( $dur/60 ).'分钟前';
+		} else {
+			if ( $dur < 86400 ) {
+				return floor( $dur / 3600 ).'小时前';
+			} else {
+				if ( $dur < 259200 ) {// 3 day
+					return floor( $dur / 86400 ).'天前';
+				} else {
+					return $the_time;
+				}
+			}
+		}
+	}
 }
