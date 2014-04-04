@@ -2,17 +2,13 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
-class CP_Categories_CategoryType {
+class CP_CategoryType {
 	public static $MASTER   = 0;
 	public static $SLAVE    = 1;
 	public static $BRAND    = 2;
 }
 
-class CP_Categories_Category {
-	
-	
-	
-	
+class CP_Category {
 	var $id;
 	var $parent_id;
 	var $name;
@@ -57,7 +53,7 @@ class CP_Categories_Category {
 		if ( empty( $this->id ) )
 			$this->id = $wpdb->insert_id;
 
-		wp_cache_delete( 'cp_categories_category_' . $this->id, 'cp' );
+		wp_cache_delete( 'CP_Category_' . $this->id, 'cp' );
 
 		return true;
 	}
@@ -74,7 +70,7 @@ class CP_Categories_Category {
 	}
 
 	function get_id_from_slug( $slug, $type = 0, $parent_id = 0 ) {
-		return CP_Categories_Category::category_exists( $slug, $type, $parent_id );
+		return CP_Category::category_exists( $slug, $type, $parent_id );
 	}
 	
 	function get_by_name( $name ) {
@@ -86,7 +82,7 @@ class CP_Categories_Category {
 		$category = false;
 		$sql = $wpdb->prepare( "SELECT * FROM {$cp->categories->table_name} WHERE name = %s", $name );
 		if ( $field = $wpdb->get_row( $sql ) ) {
-			$category = new CP_Categories_Category();
+			$category = new CP_Category();
 			
 			$category->id                = $field->id;
 			$category->parent_id         = $field->parent_id;

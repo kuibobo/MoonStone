@@ -14,10 +14,10 @@ if ( !defined( 'ABSPATH' ) ) exit;
 
 function categories_get_category( $category_id ) {
 
-	$cache_key = 'cp_categories_category_' . $category_id ;
+	$cache_key = 'CP_Category_' . $category_id ;
 
 	if ( !$category = wp_cache_get( $cache_key, 'cp' ) ) {
-		$category = new CP_Categories_Category( $category_id );
+		$category = new CP_Category( $category_id );
 		wp_cache_set( $cache_key, $category, 'cp' );
 	}
 
@@ -52,7 +52,7 @@ function categories_create_category( $args = '' ) {
 	if ( !empty( $category_id ) )
 		$category = categories_get_category( array( 'category_id' => $category_id ) );
 	else
-		$category = new CP_Categories_Category;
+		$category = new CP_Category;
 
 	if ( !empty( $parent_id ) )
 		$category->parent_id = $parent_id;
@@ -102,13 +102,18 @@ function categories_update_categorymeta( $category_id, $meta_key, $meta_value ) 
 		return false;
 
 	// Update the cached object and recache
-	wp_cache_set( 'cp_categories_categorymeta_' . $category_id . '_' . $meta_key, $meta_value, 'cp' );
+	wp_cache_set( 'CP_Categorymeta_' . $category_id . '_' . $meta_key, $meta_value, 'cp' );
 
 	return true;
 }
 
-function categories_get_id( $category_slug ) {
-	return (int)CP_Categories_Category::category_exists( $category_slug );
+function cp_categories_get_current_id() {
+	$category_slug = cp_current_category();
+	return cp_categories_get_id( $category_slug );
+}
+
+function cp_categories_get_id( $category_slug ) {
+	return (int) CP_Category::category_exists( $category_slug );
 }
 
 function categories_get_categories( $args = '' ) {
@@ -128,7 +133,7 @@ function categories_get_categories( $args = '' ) {
 
 	$r = wp_parse_args( $args, $defaults );
 
-	$categories = CP_Categories_Category::get( array(
+	$categories = CP_Category::get( array(
 		'type'            => $r['type'],
 		'parent'          => $r['user_id'],
 		'include'         => $r['include'],
@@ -146,7 +151,7 @@ function categories_get_categories( $args = '' ) {
 
 function categories_get_total_category_count() {
 	if ( !$count = wp_cache_get( 'cp_total_category_count', 'cp' ) ) {
-		$count = CP_Categories_Category::get_total_category_count();
+		$count = CP_Category::get_total_category_count();
 		wp_cache_set( 'cp_total_category_count', $count, 'cp' );
 	}
 
@@ -180,10 +185,10 @@ function categories_check_category_exists( $slug, $parent_slug = '' ) {
 	if ( empty( $slug ) ) 
 		return false;
 		
-	$category_exists = CP_Categories_Category::category_exists( $slug );
+	$category_exists = CP_Category::category_exists( $slug );
 	
 	if ( $category_exists && !empty( $parent_slug ) ) {
-		$category_exists = CP_Categories_Category::get_parent_slug( $slug ) == $parent_slug;
+		$category_exists = CP_Category::get_parent_slug( $slug ) == $parent_slug;
 	}
 	
 	return $category_exists;

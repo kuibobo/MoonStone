@@ -9,8 +9,9 @@ class CP_Posts_Post {
 	var $thumb;
 	var $date_created;
 	var $name;
-	var $description;
+	var $excerpt;
 	var $price;
+	var $img_count;
 
 	function __construct( $id = null ) {
 		if ( !empty( $id ) )
@@ -29,8 +30,9 @@ class CP_Posts_Post {
 			$this->thumb          = $field->thumb;
 			$this->date_created   = $field->date_created;
 			$this->name           = $field->name;
-			$this->description    = $field->description;
+			$this->excerpt        = $field->excerpt;
 			$this->price          = $filed->price;
+			$this->img_count      = $filed->img_count;
 		}
 	}
 
@@ -38,9 +40,10 @@ class CP_Posts_Post {
 		global $wpdb, $cp;
 
 		if ( $this->exists() )
-			$sql_cmd = $wpdb->prepare( "UPDATE {$cp->posts->table_name} SET parent = %d, author = %d, thumb = %s, date_created = %d, name = %s, description = %s, price = %d WHERE id = %d", $this->parent, $this->author, $this->thumb, cp_core_current_time(), $this->name, $this->description, $this->price, $this->id );
+			$sql_cmd = $wpdb->prepare( "UPDATE {$cp->posts->table_name} SET parent = %d, author = %d, thumb = %s, date_created = %d, name = %s, excerpt = %s, price = %d, img_count = %d WHERE id = %d", $this->parent, $this->author, $this->thumb, cp_core_current_time(), $this->name, $this->excerpt, $this->price, $this->img_count, $this->id );
 		else
-			$sql_cmd = $wpdb->prepare( "INSERT INTO {$cp->posts->table_name} (parent, author, thumb = %s, date_created, name, description, price) VALUES (%d, %d, %s, %s, %s, %d)", $this->parent, $this->author, $this->thumb, cp_core_current_time(), $this->name, $this->description, $this->price );
+			$sql_cmd = $wpdb->prepare( "INSERT INTO {$cp->posts->table_name} (parent, author, thumb = %s, date_created, name, excerpt, price, img_count) VALUES (%d, %d, %s, %s, %s, %d, %d)", $this->parent, $this->author, $this->thumb, cp_core_current_time(), $this->name, $this->excerpt, $this->price, $this->img_count );
+
 
 		if ( false === $wpdb->query($sql_cmd) )
 			return false;
@@ -207,7 +210,7 @@ class CP_Posts_Post {
 		
 		if ( ! empty( $r['search_terms'] ) ) {
 			$r['search_terms'] = esc_sql( like_escape( $r['search_terms'] ) );
-			$sql['search'] = " AND ( p.name LIKE '%%{$r['search_terms']}%%' OR p.description LIKE '%%{$r['search_terms']}%%' )";
+			$sql['search'] = " AND ( p.name LIKE '%%{$r['search_terms']}%%' OR p.excerpt LIKE '%%{$r['search_terms']}%%' )";
 		}
 		
 		if ( !empty( $r['meta_query'] ) ) {
@@ -219,6 +222,8 @@ class CP_Posts_Post {
 		}
 		$sql['from']  = join( ' ', $tables );
 		$sql['where'] = join( ' AND ', (array) $clause );
+		if ( !empty( $sql['where'] ) )
+			$sql['where'] = 'WHERE ' . $sql['where'];
 		
 		/** Order/orderby ********************************************/
 		$order   = $r['order'];

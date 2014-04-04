@@ -186,7 +186,7 @@ function cp_posts_get_posts( $args = '' ) {
 
 	$r = wp_parse_args( $args, $defaults );
 
-	$groups = CP_Posts_Post::get( array(
+	$posts = CP_Posts_Post::get( array(
 			'type'            => $r['type'],
 			'user_id'         => $r['user_id'],
 			'parent'          => $r['parent'],
@@ -202,5 +202,5 @@ function cp_posts_get_posts( $args = '' ) {
 			'orderby'         => $r['orderby'],
 	) );
 
-	return apply_filters_ref_array( 'cp_posts_get_posts', array( &$groups, &$r ) );
+	return apply_filters_ref_array( 'cp_posts_get_posts', array( &$posts, &$r ) );
 }

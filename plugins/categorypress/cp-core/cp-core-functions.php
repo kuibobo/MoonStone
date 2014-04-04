@@ -439,6 +439,7 @@ function cp_get_thumbnail_url ( $url, $size = array( 80, 80 ) ) {
 	return $url;
 }
 
+
 function cp_get_short_time( $the_time ) {
 	$now_time = date( "Y-m-d H:i:s" );
 	$now_time = strtotime( $now_time );
@@ -462,4 +463,17 @@ function cp_get_short_time( $the_time ) {
 			}
 		}
 	}
+}
+
+function cp_human_time_diff ( $from, $to = '', $less_than = DAY_IN_SECONDS ) {
+	if ( empty( $to ) )
+		$to = time();
+	
+	$diff = (int) abs( $to - $from );
+	
+	if ( $diff < WEEK_IN_SECONDS ) 
+		return human_time_diff( $from, $to );
+	else
+		return date( 'Y-m-d', $from );
+
 }

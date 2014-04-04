@@ -54,7 +54,7 @@ class CP_Categories_Component extends CP_Component {
 		// Global tables for messaging component
 		$global_tables = array(
 			'table_name'           => $cp->table_prefix . 'cp_categories',
-			'table_name_categorymeta' => $cp->table_prefix . 'cp_categories_categorymeta'
+			'table_name_categorymeta' => $cp->table_prefix . 'CP_Categorymeta'
 		);
 
 		// All globals for categories component.
