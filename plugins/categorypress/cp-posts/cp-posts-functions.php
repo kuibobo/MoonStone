@@ -36,7 +36,7 @@ function cp_post_add( $args = '' ) {
 		$post_author = $user_ID;
 
 	// Setup post to be added
-	$post                    = new CP_Post( $id );
+	$post                    = new CP_Posts_Post( $id );
 	$post->post_parent       = $post_parent;
 	$post->post_author       = $post_author;
 	$post->post_date         = $post_date;
@@ -62,7 +62,7 @@ function cp_posts_get_post( $args = '' ) {
 	$cache_key = 'cp_posts_post_' . $post_id ;
 
 	if ( !$post = wp_cache_get( $cache_key, 'cp' ) ) {
-		$post = new CP_Post( $post_id );
+		$post = new CP_Posts_Post( $post_id );
 		wp_cache_set( $cache_key, $post, 'cp' );
 	}
 
@@ -162,7 +162,7 @@ function cp_posts_get_postmeta( $post_id, $meta_key = '') {
  * Get a collection of posts, based on the parameters passed
  *
  * @uses apply_filters_ref_array() Filter 'cp_posts_get_posts' to modify return value
- * @uses CP_Post::get()
+ * @uses CP_Posts_Post::get()
  * @param array $args See inline documentation for details
  * @return array
  */
@@ -186,7 +186,7 @@ function cp_posts_get_posts( $args = '' ) {
 
 	$r = wp_parse_args( $args, $defaults );
 
-	$posts = CP_Post::get( array(
+	$posts = CP_Posts_Post::get( array(
 			'type'            => $r['type'],
 			'user_id'         => $r['user_id'],
 			'parent'          => $r['parent'],
