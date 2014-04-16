@@ -12,7 +12,7 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
-function categories_get_category( $category_id ) {
+function cp_categories_get_category( $category_id ) {
 
 	$cache_key = 'CP_Category_' . $category_id ;
 
@@ -30,13 +30,13 @@ function categories_get_category( $category_id ) {
  * @param int $category_id The numeric ID of the category
  * @return string The category's slug
  */
-function categories_get_slug( $category_id ) {
+function cp_categories_get_slug( $category_id ) {
 	$category = categories_get_category( array( 'category_id' => $category_id ) );
 	return !empty( $category->slug ) ? $category->slug : '';
 }
 
 
-function categories_create_category( $args = '' ) {
+function cp_categories_create_category( $args = '' ) {
 	extract( $args );
 
 	/**
@@ -79,7 +79,7 @@ function categories_create_category( $args = '' ) {
 	return $category->id;
 }
 
-function categories_update_categorymeta( $category_id, $meta_key, $meta_value ) {
+function cp_categories_update_categorymeta( $category_id, $meta_key, $meta_value ) {
 	global $wpdb, $cp;
 
 	if ( !is_numeric( $category_id ) )
@@ -116,7 +116,7 @@ function cp_categories_get_id( $category_slug ) {
 	return (int) CP_Category::category_exists( $category_slug );
 }
 
-function categories_get_categories( $args = '' ) {
+function cp_categories_get_categories( $args = '' ) {
 
 	$defaults = array(
 		'type'            => false,    // active, newest, alphabetical, random, popular, most-forum-topics or most-forum-posts
@@ -146,10 +146,10 @@ function categories_get_categories( $args = '' ) {
 		'orderby'         => $r['orderby'],
 	) );
 
-	return apply_filters_ref_array( 'categories_get_categories', array( &$categories, &$r ) );
+	return apply_filters_ref_array( 'cp_categories_get_categories', array( &$categories, &$r ) );
 }
 
-function categories_get_total_category_count() {
+function cp_categories_get_total_category_count() {
 	if ( !$count = wp_cache_get( 'cp_total_category_count', 'cp' ) ) {
 		$count = CP_Category::get_total_category_count();
 		wp_cache_set( 'cp_total_category_count', $count, 'cp' );
@@ -158,7 +158,7 @@ function categories_get_total_category_count() {
 	return $count;
 }
 
-function categories_get_user_categories( $user_id = 0, $pag_num = 0, $pag_page = 0 ) {
+function cp_categories_get_user_categories( $user_id = 0, $pag_num = 0, $pag_page = 0 ) {
 
 	if ( empty( $user_id ) )
 		$user_id = bp_displayed_user_id();
@@ -166,7 +166,7 @@ function categories_get_user_categories( $user_id = 0, $pag_num = 0, $pag_page =
 	return BP_Groups_Member::get_category_ids( $user_id, $pag_num, $pag_page );
 }
 
-function categories_total_categories_for_user( $user_id = 0 ) {
+function cp_categories_total_categories_for_user( $user_id = 0 ) {
 
 	if ( empty( $user_id ) )
 		$user_id = ( bp_displayed_user_id() ) ? bp_displayed_user_id() : bp_loggedin_user_id();
@@ -179,7 +179,7 @@ function categories_total_categories_for_user( $user_id = 0 ) {
 	return $count;
 }
 
-function categories_check_category_exists( $slug, $parent_slug = '' ) {
+function cp_categories_check_category_exists( $slug, $parent_slug = '' ) {
 	$category_exists = false;
 
 	if ( empty( $slug ) ) 
