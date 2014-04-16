@@ -2,7 +2,7 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
-class CP_Posts_Post {
+class CP_Post {
 	var $id;
 	var $parent;
 	var $author;
@@ -95,13 +95,13 @@ class CP_Posts_Post {
 	/**
 	* Get the ID of a post by the post's slug.
 	*
-	* Alias of {@link CP_Posts_Post::post_exists()}.
+	* Alias of {@link CP_Post::post_exists()}.
 	*
-	* @param string $slug See {@link CP_Posts_Post::post_exists()}.
-	* @return string|null See {@link CP_Posts_Post::post_exists()}.
+	* @param string $slug See {@link CP_Post::post_exists()}.
+	* @return string|null See {@link CP_Post::post_exists()}.
 	*/
 	public static function get_id_from_slug( $slug ) {
-		return CP_Posts_Post::post_exists( $slug );
+		return CP_Post::post_exists( $slug );
 	}
 	
 	public function delete_for_user( $author ) {

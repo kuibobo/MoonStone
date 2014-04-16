@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) exit;
 
 // If CategoryPress is not activated, switch back to the default WP theme and bail out
-if ( ! function_exists( 'cp_is_active' ) ) {
+if ( ! function_exists( 'cp_version' ) ) {
 	switch_theme( WP_DEFAULT_THEME, WP_DEFAULT_THEME );
 	return;
 }
