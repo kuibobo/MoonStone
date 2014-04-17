@@ -133,6 +133,41 @@ class CP_Category {
 		
 		return $retval;
 	}
+	
+	/**
+	 * Convert the 'type' parameter to 'order' and 'orderby'.
+	 *
+	 * @since BuddyPress (1.8.0)
+	 * @access protected
+	 *
+	 * @param string $type The 'type' shorthand param.
+	 * @return array {
+	 *	@type string $order SQL-friendly order string.
+	 *	@type string $orderby SQL-friendly orderby column name.
+	 * }
+	 */
+	protected static function convert_type_to_order_orderby( $type = '' ) {
+		$order = $orderby = '';
+		
+		switch ( $type ) {
+			case 'newest' :
+				$order   = 'DESC';
+				$orderby = 'date_created';
+				break;
+			
+			case 'alphabetical' :
+				$order   = 'ASC';
+				$orderby = 'name';
+				break;
+			
+			case 'random' :
+				$order   = '';
+				$orderby = 'random';
+				break;
+		}
+		
+		return array( 'order' => $order, 'orderby' => $orderby );
+	}
 
 	public static function get( $args = array() ) {
 		global $wpdb;
