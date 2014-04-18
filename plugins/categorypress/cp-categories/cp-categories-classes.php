@@ -146,34 +146,45 @@ class CP_Category {
 	 *	@type string $orderby SQL-friendly orderby column name.
 	 * }
 	 */
-	protected static function convert_type_to_order_orderby( $type = '' ) {
-		$order = $orderby = '';
+	protected static function convert_type_to_order_orderby( $type = '' ) {			
+		return array( 'order' => 'DESC', 'orderby' => $type );
+	}
+	
+	/**
+	 * Convert the 'orderby' param into a proper SQL term/column.
+	 *
+	 * @since BuddyPress (1.8.0)
+	 * @access protected
+	 *
+	 * @param string $orderby Orderby term as passed to get().
+	 * @return string $order_by_term SQL-friendly orderby term.
+	 */
+	protected static function convert_orderby_to_order_by_term( $orderby ) {
+		$order_by_term = '';
 		
-		switch ( $type ) {
-			case 'newest' :
-				$order   = 'DESC';
-				$orderby = 'date_created';
+		switch ( $orderby ) {
+			case 'date_created' :
+			default :
+				$order_by_term = 'c.date_created';
 				break;
-			
-			case 'alphabetical' :
-				$order   = 'ASC';
-				$orderby = 'name';
+							
+			case 'name' :
+				$order_by_term = 'c.name';
 				break;
 			
 			case 'random' :
-				$order   = '';
-				$orderby = 'random';
+				$order_by_term = 'rand()';
 				break;
 		}
 		
-		return array( 'order' => $order, 'orderby' => $orderby );
+		return $order_by_term;
 	}
 
 	public static function get( $args = array() ) {
-		global $wpdb;
+		global $wpdb, $cp;
 		
 		$defaults = array(
-				'type'            => null,
+				'type'            => CP_CategoryType::$MASTER,
 				'orderby'         => 'date_created',
 				'order'           => 'DESC',
 				'per_page'        => null,
@@ -195,31 +206,26 @@ class CP_Category {
 		$sql['select'] = "SELECT *";
 		$sql['from']   = " FROM {$cp->categories->table_name} c";
 		
-		if ( ! empty( $r['parent_id'] ) ) 
-			$sql['parent_where'] =  $wpdb->prepare( " AND c.parent = %d", $r['parent_id'] );
-			
-		$sql['where'] = "";
+		$sql['parent_where'] =  $wpdb->prepare( "WHERE c.parent = %d", $r['parent_id'] );
+
 		
 		/** Order/orderby ********************************************/
 		
 		$order   = $r['order'];
 		$orderby = $r['orderby'];
 
-		// If a 'type' parameter was passed, parse it and overwrite
-		// 'order' and 'orderby' params passed to the function
-		if (  ! empty( $r['type'] ) ) {
-			$order_orderby = self::convert_type_to_order_orderby( $r['type'] );
-			
-			// If an invalid type is passed, $order_orderby will be
-			// an array with empty values. In this case, we stick
-			// with the default values of $order and $orderby
-			if ( ! empty( $order_orderby['order'] ) ) {
-				$order = $order_orderby['order'];
-			}
-			
-			if ( ! empty( $order_orderby['orderby'] ) ) {
-				$orderby = $order_orderby['orderby'];
-			}
+	
+		$order_orderby = self::convert_type_to_order_orderby( $r['type'] );
+		
+		// If an invalid type is passed, $order_orderby will be
+		// an array with empty values. In this case, we stick
+		// with the default values of $order and $orderby
+		if ( ! empty( $order_orderby['order'] ) ) {
+			$order = $order_orderby['order'];
+		}
+		
+		if ( ! empty( $order_orderby['orderby'] ) ) {
+			$orderby = $order_orderby['orderby'];
 		}
 		
 		// Sanitize 'order'
@@ -238,6 +244,18 @@ class CP_Category {
 		if ( ! empty( $r['per_page'] ) && ! empty( $r['page'] ) ) {
 			$sql['pagination'] = $wpdb->prepare( "LIMIT %d, %d", intval( ( $r['page'] - 1 ) * $r['per_page']), intval( $r['per_page'] ) );
 		}
+		
+		// Get paginated results
+		$paged_categories_sql = join( ' ', (array) $sql );
+		$paged_categories     = $wpdb->get_results( $paged_categories_sql );
+		
+		$sql['select'] = "SELECT COUNT(DISTINCT c.id) FROM {$cp->categories->table_name} c";
+		$total_categories_sql = join( ' ', (array) $sql );
+		$total_categories     = $wpdb->get_results( $total_categories_sql );
+		
+		unset( $sql );
+		
+		return array( 'categories' => $paged_categories, 'total' => $total_categories );
 	}
 
 }

@@ -3,6 +3,14 @@
 if ( !defined( 'ABSPATH' ) ) exit;
 
 class CP_Post {
+	public static $PRICES = array(
+								'p1' => array( 0, 300 ),
+								'p2' => array( 300, 500 ),
+								'p3' => array( 500, 1000 ),
+								'p4' => array( 1000, 2000 ),
+								'p5' => array( 2000, 5000 ),
+								'p6' => array( 5000, 5000000 )
+								);
 	var $id;
 	var $parent;
 	var $author;

@@ -122,7 +122,7 @@ function cp_categories_get_categories( $args = '' ) {
 		'type'            => false,    // active, newest, alphabetical, random, popular, most-forum-topics or most-forum-posts
 		'order'           => 'DESC',   // 'ASC' or 'DESC'
 		'orderby'         => 'date_created', // date_created, last_activity, total_member_count, name, random
-		'parent'          => false,    // Pass a user_id to limit to only categories that this user is a member of
+		'parent_id'       => false,    // Pass a user_id to limit to only categories that this user is a member of
 		'include'         => false,    // Only include these specific categories (category_ids)
 		'exclude'         => false,    // Do not include these specific categories (category_ids)
 		'search_terms'    => false,    // Limit to categories that match these search terms
@@ -135,7 +135,7 @@ function cp_categories_get_categories( $args = '' ) {
 
 	$categories = CP_Category::get( array(
 		'type'            => $r['type'],
-		'parent'          => $r['user_id'],
+		'parent_id'       => $r['parent_id'],
 		'include'         => $r['include'],
 		'exclude'         => $r['exclude'],
 		'search_terms'    => $r['search_terms'],
