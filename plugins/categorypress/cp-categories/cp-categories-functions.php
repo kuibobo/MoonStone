@@ -107,19 +107,84 @@ function cp_categories_update_categorymeta( $category_id, $meta_key, $meta_value
 	return true;
 }
 
+function cp_categories_get_permalink( $slug, $type = false, $ignore_crumb = false ) {
+	
+	switch( $type ) {
+	
+		case CP_CategoryType::$NORMAL:
+		case CP_CategoryType::$BRAND:
+			
+			if ( $ignore_crumb == false ) {
+				$cur_area = cp_current_area();
+				if ( !empty( $cur_area ) )
+					$cur_area .= '/';
+				
+				$cur_price = cp_current_price();
+				if ( !empty( $cur_price ) )
+					$cur_price .= '/';
+				
+				$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. cp_current_city() . '/' . $slug . '/' . $cur_area . $cur_price;
+			} else {
+				
+				if ( cp_current_city() == $slug )
+					$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/' . $slug;
+				else
+					$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/' . cp_current_city() . '/' . $slug;
+			}
+			break;
+			
+		case CP_CategoryType::$AREA:
+		
+		
+			$cur_price = cp_current_price();
+			if ( !empty( $cur_price ) )
+				$cur_price .= '/';
+				
+			$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. cp_current_city() . '/' . cp_current_category() . '/' . $slug . '/' . $cur_price;
+			break;
+		
+		case CP_CategoryType::$PRICE:
+			
+			$cur_area = cp_current_area();
+			if ( !empty( $cur_area ) )
+				$cur_area .= '/';
+								
+			$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. cp_current_city() . '/' . cp_current_category() . '/' . $cur_area . $slug . '/';
+			break;
+			
+	}		
+	
+	return apply_filters_ref_array( 'cp_categories_get_permalink', array( $link, &$slug, &$type ) );
+}
+
+function cp_categories_get_parent( $args = '' ) {
+	if ( empty( $args ) )
+		return false;
+	
+	$defaults = array(
+			'child_id'           => false,
+			'slug'               => false
+			);
+	
+	$r = wp_parse_args( $args, $defaults );
+	extract( $r, EXTR_SKIP );
+	
+	return CP_Category::get_parent( $child_id, $slug );
+}
+
 function cp_categories_get_current_id() {
 	$category_slug = cp_current_category();
 	return cp_categories_get_id( $category_slug );
 }
 
-function cp_categories_get_id( $category_slug ) {
-	return (int) CP_Category::category_exists( $category_slug );
+function cp_categories_get_id( $slug ) {
+	return (int) CP_Category::category_exists( $slug );
 }
 
 function cp_categories_get_categories( $args = '' ) {
 
 	$defaults = array(
-		'type'            => false,    // active, newest, alphabetical, random, popular, most-forum-topics or most-forum-posts
+		'type'            => CP_CategoryType::$NORMAL,    // active, newest, alphabetical, random, popular, most-forum-topics or most-forum-posts
 		'order'           => 'DESC',   // 'ASC' or 'DESC'
 		'orderby'         => 'date_created', // date_created, last_activity, total_member_count, name, random
 		'parent_id'       => false,    // Pass a user_id to limit to only categories that this user is a member of
@@ -188,7 +253,10 @@ function cp_categories_check_category_exists( $slug, $parent_slug = '' ) {
 	$category_exists = CP_Category::category_exists( $slug );
 	
 	if ( $category_exists && !empty( $parent_slug ) ) {
-		$category_exists = CP_Category::get_parent_slug( $slug ) == $parent_slug;
+		$category_id = CP_Category::get_id_from_slug( $slug );
+		$category  = CP_Category::get_parent( $category_id );
+		
+		$category_exists = $category->slug == $parent_slug;
 	}
 	
 	return $category_exists;

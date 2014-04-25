@@ -53,8 +53,55 @@ function cp_current_category() {
 	
 	if ( empty( $cp->current_categories ) )
 		return '';
+	
+	if ( count( $cp->current_categories ) > 1 )
+		return $cp->current_categories[ 1 ];
 		
-	return $cp->current_categories[ count( $cp->current_categories ) - 1 ];
+	return '';
+}
+
+function cp_current_city() {
+	global $cp;
+	
+	if ( empty( $cp->current_categories ) )
+		return '';
+		
+	return $cp->current_categories[0];
+}
+
+function cp_current_area() {
+	global $cp;
+	
+	if ( empty( $cp->current_categories ) )
+		return '';
+		
+	if ( count( $cp->current_categories ) > 2 ) {
+		foreach( CP_Post::$PRICES as $key => $value ) {
+			if ( $key == $cp->current_categories[ 2 ] )
+				return '';
+		}
+		return $cp->current_categories[ 2 ];
+	}
+	
+	return '';
+}
+
+function cp_current_price() {
+	global $cp;
+	
+	if ( empty( $cp->current_categories ) )
+		return '';
+	
+	if ( count( $cp->current_categories ) > 3 )
+		return $cp->current_categories[ 3 ];
+	
+	if ( count( $cp->current_categories ) == 3 ) {
+		foreach( CP_Post::$PRICES as $key => $value ) {
+			if ( $key == $cp->current_categories[ 2 ] )
+				return $key;
+		}
+	}
+	return '';
 }
 
 function cp_current_post() {
@@ -64,8 +111,38 @@ function cp_current_post() {
 	return $current_post;
 }
 
+function cp_get_category_crumbs() {
+	$category_slug = cp_current_category();
+	$category_id = cp_categories_get_id( $category_slug );
+	$parent_category = cp_categories_get_category( $category_id );
+	
+	$crumbs = array();
+	while( !empty( $category_id ) ) {
+		$obj = new stdClass();
+		$obj->link = cp_categories_get_permalink( $parent_category->slug, CP_CategoryType::$NORMAL, true);
+		$obj->name = $parent_category->name;
+		
+		$crumbs[] = $obj;
+		$parent_category = cp_categories_get_parent( array( 'child_id' => $category_id ) );
+		$category_id = $parent_category->id;
+	}
+	
+	$city_slug = cp_current_city();
+	$category_id = cp_categories_get_id( $city_slug );
+	$category = cp_categories_get_category( $category_id );
+	
+	$obj = new stdClass();
+	$obj->link = cp_categories_get_permalink( $category->slug, CP_CategoryType::$NORMAL, true);
+	$obj->name = $category->name;
+	
+	$crumbs[] = $obj;
+	
+	$crumbs = array_reverse( $crumbs );
+	return $crumbs;
+}
+
 /**
- * Is this a BuddyPress component?
+ * Is this a CategoryPress component?
  *
  * You can tell if a page is displaying BP content by whether the
  * current_component has been defined.
@@ -133,4 +210,17 @@ function cp_displayed_user_id() {
 	
 	//return (int) apply_filters( 'cp_displayed_user_id', $id );
 	return -99;
+}
+
+function cp_get_root_domain() {
+	global $cp;
+
+	if ( isset( $cp->root_domain ) && !empty( $cp->root_domain ) ) {
+		$domain = $cp->root_domain;
+	} else {
+		$domain          = cp_core_get_root_domain();
+		$cp->root_domain = $domain;
+	}
+
+	return apply_filters( 'cp_get_root_domain', $domain );
 }

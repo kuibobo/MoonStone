@@ -80,12 +80,12 @@ class CP_Posts_Component extends CP_Component {
 			if ( !empty( $categories ) ) {
 				$category_cout = count( $categories );
 				
-				for ( $i = $category_cout - 1; $i > 0; $i-- ) {
-					if ( !cp_categories_check_category_exists( $categories[ $i ], $categories[ $i - 1 ] ) ) {
-						$this->category_verifed = false;
-						break;
-					}
-				}
+				//for ( $i = $category_cout - 1; $i > 0; $i-- ) {
+				//	if ( !cp_categories_check_category_exists( $categories[ $i ], $categories[ $i - 1 ] ) ) {
+				//		$this->category_verifed = false;
+				//		break;
+				//	}
+				//}
 				
 				if ( $this->category_verifed == true )
 					$this->category_verifed = cp_categories_check_category_exists( $categories[0] );

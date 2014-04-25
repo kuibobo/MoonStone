@@ -1,16 +1,15 @@
 <?php
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
-
 class CP_CategoryType {
-	public static $MASTER   = 0;
-	public static $SLAVE    = 1;
-	public static $BRAND    = 2;
+	public static $NORMAL   = 0;
+	public static $BRAND    = 1;
+	public static $AREA     = 2;
+	public static $PRICE    = 3;
 }
 
 class CP_Category {
 	var $id;
-	var $parent_id;
 	var $name;
 	var $description;
 	var $slug;
@@ -30,7 +29,6 @@ class CP_Category {
 		if ( $field = $wpdb->get_row( $sql ) ) {
 			
 			$this->id                = $field->id;
-			$this->parent_id         = $field->parent_id;
 			$this->name              = $field->name;
 			$this->description       = $field->description;
 			$this->slug              = $field->slug;
@@ -43,9 +41,9 @@ class CP_Category {
 		global $wpdb, $cp;
 
 		if ( $this->exists() )
-			$sql_cmd = $wpdb->prepare( "UPDATE {$cp->categories->table_name} SET parent = %d, name = %s, description = %s, slug = %s, type = %d, date_created = %s WHERE id = %d", $this->parent_id, $this->name, $this->description, $this->slug, $this->type, cp_core_current_time(), $this->id );
+			$sql_cmd = $wpdb->prepare( "UPDATE {$cp->categories->table_name} SET name = %s, description = %s, slug = %s, type = %d, date_created = %s WHERE id = %d", $this->name, $this->description, $this->slug, $this->type, cp_core_current_time(), $this->id );
 		else
-			$sql_cmd = $wpdb->prepare( "INSERT INTO {$cp->categories->table_name} (parent, name, description, slug, type, date_created) VALUES (%d, %s, %s, %s, %d, %s)", $this->parent_id, $this->name, $this->description, $this->slug, $this->type, cp_core_current_time() );
+			$sql_cmd = $wpdb->prepare( "INSERT INTO {$cp->categories->table_name} (name, description, slug, type, date_created) VALUES (%d, %s, %s, %s, %d, %s)", $this->name, $this->description, $this->slug, $this->type, cp_core_current_time() );
 
 		if ( false === $wpdb->query($sql_cmd) )
 			return false;
@@ -85,7 +83,6 @@ class CP_Category {
 			$category = new CP_Category();
 			
 			$category->id                = $field->id;
-			$category->parent_id         = $field->parent_id;
 			$category->name              = $field->name;
 			$category->description       = $field->description;
 			$category->slug              = $field->slug;
@@ -123,13 +120,23 @@ class CP_Category {
 		return $retval;
 	}
 	
-	public static function get_parent_slug( $slug ) {
+	public static function get_parent( $child_id, $slug ) {
 		global $wpdb, $cp;
 		
-		if ( empty( $slug ) )
-			return false;
+		$where_args = false;
 		
-		$retval = $wpdb->get_var( $wpdb->prepare( "SELECT slug FROM {$cp->categories->table_name} WHERE id = (SELECT parent FROM {$cp->categories->table_name} WHERE slug = %s)", $slug ) );
+		if ( !empty( $child_id ) )
+			$where_args[] = $wpdb->prepare( "child_id = %d", $child_id );
+			
+		if ( !empty( $slug ) )
+			$where_args[] = $wpdb->prepare( "slug = %s", $slug );
+			
+		if ( !empty( $where_args ) )
+			$where_sql = 'WHERE ' . join( ' AND ', $where_args );
+		else
+			return false;
+			
+		$retval = $wpdb->get_row( "SELECT * FROM {$cp->categories->table_name} WHERE id = (SELECT parent_id FROM {$cp->categories->table_name_c_in_c} {$where_sql})" );
 		
 		return $retval;
 	}
@@ -182,40 +189,24 @@ class CP_Category {
 
 	public static function get( $args = array() ) {
 		global $wpdb, $cp;
-		
-		$defaults = array(
-				'type'            => CP_CategoryType::$MASTER,
-				'orderby'         => 'date_created',
-				'order'           => 'DESC',
-				'per_page'        => null,
-				'page'            => null,
-				'parent_id'       => 0,
-				'search_terms'    => false,
-				'meta_query'      => false,
-				'include'         => false,
-				'populate_extras' => true,
-				'exclude'         => false,
-				'show_hidden'     => false,
-				);
-		
-		$r = wp_parse_args( $args, $defaults );
-		
+			
 		$sql       = array();
 		$total_sql = array();
 		
 		$sql['select'] = "SELECT *";
 		$sql['from']   = " FROM {$cp->categories->table_name} c";
+		$sql['category_join'] = " JOIN {$cp->categories->table_name_c_in_c} cc ON cc.child_id = c.id";
 		
-		$sql['parent_where'] =  $wpdb->prepare( "WHERE c.parent = %d", $r['parent_id'] );
-
+		$sql['parent_where'] =  $wpdb->prepare( "WHERE cc.parent_id = %d", $args['parent_id'] );
+		$sql['type_where'] =  $wpdb->prepare( " AND c.type = %d", $args['type'] );
 		
 		/** Order/orderby ********************************************/
 		
-		$order   = $r['order'];
-		$orderby = $r['orderby'];
+		$order   = $args['order'];
+		$orderby = $args['orderby'];
 
 	
-		$order_orderby = self::convert_type_to_order_orderby( $r['type'] );
+		$order_orderby = self::convert_type_to_order_orderby( $args['type'] );
 		
 		// If an invalid type is passed, $order_orderby will be
 		// an array with empty values. In this case, we stick
@@ -241,8 +232,8 @@ class CP_Category {
 			$sql[] = "ORDER BY {$orderby} {$order}";
 		}
 		
-		if ( ! empty( $r['per_page'] ) && ! empty( $r['page'] ) ) {
-			$sql['pagination'] = $wpdb->prepare( "LIMIT %d, %d", intval( ( $r['page'] - 1 ) * $r['per_page']), intval( $r['per_page'] ) );
+		if ( ! empty( $args['per_page'] ) && ! empty( $args['page'] ) ) {
+			$sql['pagination'] = $wpdb->prepare( "LIMIT %d, %d", intval( ( $args['page'] - 1 ) * $args['per_page']), intval( $args['per_page'] ) );
 		}
 		
 		// Get paginated results
