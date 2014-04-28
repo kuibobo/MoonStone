@@ -12,12 +12,26 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
-function cp_categories_get_category( $category_id ) {
-
-	$cache_key = 'CP_Category_' . $category_id ;
+function cp_categories_get_category( $args = '' ) {
+	if ( empty( $args ) )
+		return false;
+	
+	$defaults = array(
+			'id'           => '',
+			'slug'         => ''
+			);
+	$r = wp_parse_args( $args, $defaults );
+	extract( $r, EXTR_SKIP );
+	
+	$cache_key = 'CP_Category_' . $id . '_' . $slug ;
 
 	if ( !$category = wp_cache_get( $cache_key, 'cp' ) ) {
-		$category = new CP_Category( $category_id );
+		
+		if ( !empty( $id ) )
+			$category = new CP_Category( $id );
+		else
+			$category = CP_Category::get_by_slug( $slug );
+
 		wp_cache_set( $cache_key, $category, 'cp' );
 	}
 
@@ -115,7 +129,7 @@ function cp_categories_get_permalink( $slug, $type = false, $ignore_crumb = fals
 		case CP_CategoryType::$BRAND:
 			
 			if ( $ignore_crumb == false ) {
-				$cur_area = cp_current_area();
+				$cur_area = cp_current_area_slug();
 				if ( !empty( $cur_area ) )
 					$cur_area .= '/';
 				
@@ -123,13 +137,13 @@ function cp_categories_get_permalink( $slug, $type = false, $ignore_crumb = fals
 				if ( !empty( $cur_price ) )
 					$cur_price .= '/';
 				
-				$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. cp_current_city() . '/' . $slug . '/' . $cur_area . $cur_price;
+				$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. cp_current_city_slug() . '/' . $slug . '/' . $cur_area . $cur_price;
 			} else {
 				
-				if ( cp_current_city() == $slug )
+				if ( cp_current_city_slug() == $slug )
 					$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/' . $slug;
 				else
-					$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/' . cp_current_city() . '/' . $slug;
+					$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/' . cp_current_city_slug() . '/' . $slug;
 			}
 			break;
 			
@@ -139,17 +153,17 @@ function cp_categories_get_permalink( $slug, $type = false, $ignore_crumb = fals
 			$cur_price = cp_current_price();
 			if ( !empty( $cur_price ) )
 				$cur_price .= '/';
-				
-			$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. cp_current_city() . '/' . cp_current_category() . '/' . $slug . '/' . $cur_price;
+ 
+			$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. cp_current_city_slug() . '/' . cp_current_category_slug() . '/' . $slug . '/' . $cur_price;
 			break;
 		
 		case CP_CategoryType::$PRICE:
 			
-			$cur_area = cp_current_area();
+			$cur_area = cp_current_area_slug();
 			if ( !empty( $cur_area ) )
 				$cur_area .= '/';
 								
-			$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. cp_current_city() . '/' . cp_current_category() . '/' . $cur_area . $slug . '/';
+			$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. cp_current_city_slug() . '/' . cp_current_category_slug() . '/' . $cur_area . $slug . '/';
 			break;
 			
 	}		
@@ -173,7 +187,7 @@ function cp_categories_get_parent( $args = '' ) {
 }
 
 function cp_categories_get_current_id() {
-	$category_slug = cp_current_category();
+	$category_slug = cp_current_category_slug();
 	return cp_categories_get_id( $category_slug );
 }
 

@@ -49,18 +49,28 @@ function cp_current_categories() {
 }
 
 function cp_current_category() {
+ 
+	$slug = cp_current_category_slug();
+	
+	if ( !empty( $slug ) ) 
+		return cp_categories_get_category( array( 'slug' => $slug ) );
+	
+	return false;
+}
+
+function cp_current_category_slug() {
 	global $cp;
 	
 	if ( empty( $cp->current_categories ) )
-		return '';
+		return false;
 	
-	if ( count( $cp->current_categories ) > 1 )
-		return $cp->current_categories[ 1 ];
+	if ( count( $cp->current_categories ) > 1 ) 
+		return $cp->current_categories[ 1 ];	
 		
-	return '';
+	return false;
 }
 
-function cp_current_city() {
+function cp_current_city_slug() {
 	global $cp;
 	
 	if ( empty( $cp->current_categories ) )
@@ -69,7 +79,7 @@ function cp_current_city() {
 	return $cp->current_categories[0];
 }
 
-function cp_current_area() {
+function cp_current_area_slug() {
 	global $cp;
 	
 	if ( empty( $cp->current_categories ) )
@@ -112,24 +122,21 @@ function cp_current_post() {
 }
 
 function cp_get_category_crumbs() {
-	$category_slug = cp_current_category();
-	$category_id = cp_categories_get_id( $category_slug );
-	$parent_category = cp_categories_get_category( $category_id );
+	$category = cp_current_category();
+	$parent_category = cp_categories_get_category( array( 'id' => $category->id ) );
 	
 	$crumbs = array();
-	while( !empty( $category_id ) ) {
+	while( !empty( $parent_category->id ) ) {
 		$obj = new stdClass();
 		$obj->link = cp_categories_get_permalink( $parent_category->slug, CP_CategoryType::$NORMAL, true);
 		$obj->name = $parent_category->name;
 		
 		$crumbs[] = $obj;
-		$parent_category = cp_categories_get_parent( array( 'child_id' => $category_id ) );
-		$category_id = $parent_category->id;
+		$parent_category = cp_categories_get_parent( array( 'child_id' => $parent_category->id ) );
 	}
 	
-	$city_slug = cp_current_city();
-	$category_id = cp_categories_get_id( $city_slug );
-	$category = cp_categories_get_category( $category_id );
+	$city_slug = cp_current_city_slug();
+	$category = cp_categories_get_category( array( 'slug' => $city_slug ) );
 	
 	$obj = new stdClass();
 	$obj->link = cp_categories_get_permalink( $category->slug, CP_CategoryType::$NORMAL, true);

@@ -71,28 +71,6 @@ class CP_Category {
 		return CP_Category::category_exists( $slug, $type, $parent_id );
 	}
 	
-	function get_by_name( $name ) {
-		global $wpdb, $cp;
-		
-		if ( empty( $name ) )
-			return false;
-		
-		$category = false;
-		$sql = $wpdb->prepare( "SELECT * FROM {$cp->categories->table_name} WHERE name = %s", $name );
-		if ( $field = $wpdb->get_row( $sql ) ) {
-			$category = new CP_Category();
-			
-			$category->id                = $field->id;
-			$category->name              = $field->name;
-			$category->description       = $field->description;
-			$category->slug              = $field->slug;
-			$category->type              = $filed->type;
-			$category->date_created      = $field->date_created;
-		}
-		
-		return $category;
-	}
-
 	function get_total_category_count() {
 		global $wpdb, $cp;
 
@@ -108,6 +86,28 @@ class CP_Category {
 	//
 	//	return $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$cp->categories->table_name} WHERE parent AND slug = %s AND type = %d", $parent_id, $slug, $type ) );
 	//}
+	
+	public static function get_by_slug( $slug ) {
+		global $wpdb, $cp;
+		
+		if ( empty( $slug ) )
+			return false;
+		
+		$category = false;
+		$sql = $wpdb->prepare( "SELECT * FROM {$cp->categories->table_name} WHERE slug = %s", $slug );
+		if ( $field = $wpdb->get_row( $sql ) ) {
+			$category = new CP_Category();
+			
+			$category->id                = $field->id;
+			$category->name              = $field->name;
+			$category->description       = $field->description;
+			$category->slug              = $field->slug;
+			$category->type              = $filed->type;
+			$category->date_created      = $field->date_created;
+		}
+		
+		return $category;
+	}
 	
 	public static function category_exists( $slug ) {
 		global $wpdb, $cp;
