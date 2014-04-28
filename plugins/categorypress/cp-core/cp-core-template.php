@@ -102,16 +102,18 @@ function cp_current_price() {
 	if ( empty( $cp->current_categories ) )
 		return '';
 	
-	if ( count( $cp->current_categories ) > 3 )
-		return $cp->current_categories[ 3 ];
+	$slug = false;
 	
-	if ( count( $cp->current_categories ) == 3 ) {
-		foreach( CP_Post::$PRICES as $key => $value ) {
-			if ( $key == $cp->current_categories[ 2 ] )
-				return $key;
-		}
-	}
-	return '';
+	if ( count( $cp->current_categories ) > 3 )
+		$slug = $cp->current_categories[ 3 ];
+	
+	if ( count( $cp->current_categories ) == 3 ) 
+		$slug = $cp->current_categories[ 2 ];
+	
+	if ( in_array( $slug, CP_Post::$PRICES ) == true )
+		return $slug;
+		
+	return false;
 }
 
 function cp_current_post() {

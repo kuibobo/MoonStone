@@ -130,6 +130,10 @@ function cp_categories_get_permalink( $slug, $type = false, $ignore_crumb = fals
 			
 			if ( $ignore_crumb == false ) {
 				$cur_area = cp_current_area_slug();
+				
+				if ( cp_categories_check_category_exists( $cur_area ) == false )
+					unset( $cur_area );
+					
 				if ( !empty( $cur_area ) )
 					$cur_area .= '/';
 				
@@ -160,6 +164,10 @@ function cp_categories_get_permalink( $slug, $type = false, $ignore_crumb = fals
 		case CP_CategoryType::$PRICE:
 			
 			$cur_area = cp_current_area_slug();
+			
+			if ( cp_categories_check_category_exists( $cur_area ) == false )
+				unset( $cur_area );
+			
 			if ( !empty( $cur_area ) )
 				$cur_area .= '/';
 								
@@ -264,7 +272,7 @@ function cp_categories_check_category_exists( $slug, $parent_slug = '' ) {
 	if ( empty( $slug ) ) 
 		return false;
 		
-	$category_exists = CP_Category::category_exists( $slug );
+	$category_exists = (bool) CP_Category::category_exists( $slug );
 	
 	if ( $category_exists && !empty( $parent_slug ) ) {
 		$category_id = CP_Category::get_id_from_slug( $slug );
