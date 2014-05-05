@@ -45,6 +45,15 @@ function cp_category_admin() {
 }
 
 function cp_category_admin_load() {
+	// Decide whether to load the dev version of the CSS and JavaScript
+	$min = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : 'min.';
+
+	// Edit screen
+	if ( 'edit' == $doaction && ! empty( $_GET['aid'] ) ) {
+	
+	} else {
+	
+	}
 }
 
 function cp_activity_admin_index() {
@@ -73,31 +82,30 @@ function cp_activity_admin_index() {
 
 		</form>
 		
-		<?php // This markup is used for the reply form ?>
-		<table style="display: none;">
-			<tr id="bp-activities-container" style="display: none;">
-				<td colspan="4">
-					<form method="get" action="">
-
-						<h5 id="bp-replyhead"><?php _e( 'Reply to Category', 'categorypress' ); ?></h5>
-						<?php wp_editor( '', 'cp-categories', array( 'dfw' => false, 'media_buttons' => false, 'quicktags' => array( 'buttons' => 'strong,em,link,block,del,ins,img,code,spell,close' ), 'tinymce' => false, ) ); ?>
-
-						<p id="bp-replysubmit" class="submit">
-							<a href="#" class="cancel button-secondary alignleft"><?php _e( 'Cancel', 'categorypress' ); ?></a>
-							<a href="#" class="save button-primary alignright"><?php _e( 'Reply', 'categorypress' ); ?></a>
-
-							<img class="waiting" style="display:none;" src="<?php echo esc_url( bp_get_admin_url( 'images/wpspin_light.gif' ) ); ?>" alt="" />
-							<span class="error" style="display:none;"></span>
-							<br class="clear" />
-						</p>
-
-						<?php wp_nonce_field( 'cp-category-admin-reply', '_ajax_nonce-cp-category-admin-reply', false ); ?>
-
-					</form>
-				</td>
-			</tr>
+		<table class="widefat fixed categories" cellspacing="0">
+			<thead><tr>
+				<th scope="col" id="cb" class="manage-column column-cb check-column"><label class="screen-reader-text" for="cb-select-all-1">Select All</label><input id="cb-select-all-1" type="checkbox" /></th>
+				<th scope='col' id='name' class='manage-column column-name'>Name</th>
+				<th scope='col' id='comment' class='manage-column column-comment'>-</th>
+				<th scope='col' id='response' class='manage-column column-response'>In Response To</th>
+			</tr></thead>
+			
+			<tfoot><tr>
+				<th scope='col' class='manage-column column-cb check-column'><label class="screen-reader-text" for="cb-select-all-2">Select All</label><input id="cb-select-all-2" type="checkbox" /></th>
+				<th scope='col'  class='manage-column column-author'>Author</th>
+				<th scope='col'  class='manage-column column-comment'>Activity</th>
+				<th scope='col'  class='manage-column column-response'>In Response To</th>
+			</tr></tfoot>
+			
+			<tbody id="the-comment-list">
+				<tr class="alternate odd" id="activity-3461" data-parent_id="3461" data-root_id="3461">
+					<th scope="row" class="check-column"><label class="screen-reader-text" for="cid-3461">Select category item 3461</label><input type="checkbox" name="aid[]" value="3461" id="aid-3461" /></th>
+					<td class='author column-author'></td>
+					<td class='comment column-comment'></td>
+					<td class='response column-response'></td>
+				</tr>
+			</tbody>
 		</table>
-		
 	</div>
 <?php
 }
