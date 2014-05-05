@@ -26,10 +26,6 @@ function cp_init() {
 	do_action( 'cp_init' );
 }
 
-function cp_admin_init() {
-	do_action( 'cp_admin_init' );
-}
-
 function cp_template_redirect() {
 	do_action( 'cp_template_redirect' );
 }

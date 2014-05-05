@@ -475,5 +475,22 @@ function cp_human_time_diff ( $from, $to = '', $less_than = DAY_IN_SECONDS ) {
 		return human_time_diff( $from, $to );
 	else
 		return date( 'Y-m-d', $from );
+}
 
+
+function cp_core_admin_hook() {
+	$hook = cp_core_do_network_admin() ? 'network_admin_menu' : 'admin_menu';
+	
+	return apply_filters( 'cp_core_admin_hook', $hook );
+}
+
+function cp_core_do_network_admin() {
+	
+	// Default
+	$retval = cp_is_network_activated();
+	
+	if ( cp_is_multiblog_mode() )
+		$retval = false;
+	
+	return (bool) apply_filters( 'cp_core_do_network_admin', $retval );
 }
