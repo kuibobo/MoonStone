@@ -55,7 +55,8 @@ class CP_Posts_Component extends CP_Component {
 		// Global tables for messaging component
 		$global_tables = array(
 			'table_name'           => $cp->table_prefix . 'cp_posts',
-			'table_name_postmeta' => $cp->table_prefix . 'cp_postmeta'
+			'table_name_postmeta'  => $cp->table_prefix . 'cp_postmeta',
+			'table_name_pinc'      => $cp->table_prefix . 'cp_post_in_categories'
 		);
 
 		// All globals for posts component.

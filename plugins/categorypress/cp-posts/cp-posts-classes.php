@@ -185,21 +185,21 @@ class CP_Post {
 	
 	public static function get( $args = array() ) {
 		global $wpdb, $cp;
-		
+				
 		$defaults = array(
-				'type'            => null,
-				'orderby'         => 'date_created',
-				'order'           => 'DESC',
-				'per_page'        => null,
-				'page'            => null,
-				'parent'          => 0,
-				'user_id'         => 0,
-				'search_terms'    => false,
-				'meta_query'      => false
+			'type'            => false,    // active, newest, alphabetical, random, popular, most-forum-topics or most-forum-posts
+			'order'           => 'DESC',   // 'ASC' or 'DESC'
+			'orderby'         => 'date_created', // date_created, last_activity, total_member_count, name, random
+			'category_id'     => false,
+			'area_id'         => false,
+			'price_from'      => false,
+			'price_to'        => false,
+			'per_page'        => 20,       // The number of results to return per page
+			'page'            => 1        // The page to return if limiting per page
 		);
-		
+
 		$r = wp_parse_args( $args, $defaults );
-		
+
 		$sql       = array();
 		$tables    = array();
 		$clause    = array();
@@ -207,14 +207,19 @@ class CP_Post {
 		$sql['select'] = "SELECT DISTINCT p.* ";
 		
 		$tables[]   = "FROM {$cp->posts->table_name} p ";
-		if ( !empty( $r['meta_query'] ) || !empty( $r['search_terms'] ) ) 
-			$tables[] = "JOIN {$cp->post->table_name_postmeta} pm ON p.id = pm.post_id";
+		$tables[]   = "JOIN {$cp->posts->table_name_pinc} pinc ON p.id = pinc.post_id";
 		
-		if ( !empty( $r['user_id'] ) ) 
-			$clause[] = $wpdb->prepare( " p.author = %d", $r['user_id'] );
+		if ( !empty( $args['category_id'] ) ) 
+			$clause[] = $wpdb->prepare( " pinc.category_id = %d", $r['category_id'] );
 		
-		if ( !empty( $r['parent'] ) )
-			$clause[] = $wpdb->prepare( " p.parent = %d", $r['parent'] );
+		if ( !empty( $args['area_id'] ) ) 
+			$clause[] = $wpdb->prepare( " pinc.area_id = %d", $r['area_id'] );
+
+		if ( !empty( $args['price_from'] ) ) 
+			$clause[] = $wpdb->prepare( " p.price >= %d", $r['price_from'] );
+
+		if ( !empty( $args['price_to'] ) ) 
+			$clause[] = $wpdb->prepare( " p.price <= %d", $r['price_to'] );
 		
 		if ( ! empty( $r['search_terms'] ) ) {
 			$r['search_terms'] = esc_sql( like_escape( $r['search_terms'] ) );

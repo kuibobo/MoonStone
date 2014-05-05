@@ -129,15 +129,13 @@ function cp_categories_get_permalink( $slug, $type = false, $ignore_crumb = fals
 		case CP_CategoryType::$BRAND:
 			
 			if ( $ignore_crumb == false ) {
-				$cur_area = cp_current_area_slug();
 				
-				if ( cp_categories_check_category_exists( $cur_area ) == false )
-					unset( $cur_area );
-					
+				$cur_area = cp_current_area_slug();
+									
 				if ( !empty( $cur_area ) )
 					$cur_area .= '/';
 				
-				$cur_price = cp_current_price();
+				$cur_price = cp_current_price_slug();
 				if ( !empty( $cur_price ) )
 					$cur_price .= '/';
 				
@@ -153,8 +151,7 @@ function cp_categories_get_permalink( $slug, $type = false, $ignore_crumb = fals
 			
 		case CP_CategoryType::$AREA:
 		
-		
-			$cur_price = cp_current_price();
+			$cur_price = cp_current_price_slug();
 			if ( !empty( $cur_price ) )
 				$cur_price .= '/';
  
@@ -164,9 +161,6 @@ function cp_categories_get_permalink( $slug, $type = false, $ignore_crumb = fals
 		case CP_CategoryType::$PRICE:
 			
 			$cur_area = cp_current_area_slug();
-			
-			if ( cp_categories_check_category_exists( $cur_area ) == false )
-				unset( $cur_area );
 			
 			if ( !empty( $cur_area ) )
 				$cur_area .= '/';
@@ -195,8 +189,8 @@ function cp_categories_get_parent( $args = '' ) {
 }
 
 function cp_categories_get_current_id() {
-	$category_slug = cp_current_category_slug();
-	return cp_categories_get_id( $category_slug );
+	$slug = cp_current_category_slug();
+	return cp_categories_get_id( $slug );
 }
 
 function cp_categories_get_id( $slug ) {

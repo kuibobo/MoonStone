@@ -1,7 +1,53 @@
 <?php
-$catetory_id = cp_categories_get_current_id();
+$cur_category_slug = cp_current_category_slug();
+$cur_area_slug      = cp_current_area_slug();
+if ( empty( $cur_area_slug ) )
+	$cur_area_slug = cp_current_city_slug();
+	
+$cur_price_slug     = cp_current_price_slug();
+
+
+$cur_category_id = cp_categories_get_id( $cur_category_slug );
+$cur_area_id = cp_categories_get_id( $cur_area_slug );
+
+$price_from = false;
+$price_to = false;
+if ( !empty( $cur_price_slug ) ) {
+	$price_from = CP_Post::$PRICES[$cur_price_slug][0];
+	$price_to   = CP_Post::$PRICES[$cur_price_slug][1];
+}
+
+// get page index
+$path = esc_url( $_SERVER['REQUEST_URI'] );
+$chunks = explode( '/', $path );
+$chunks = array_filter( $chunks );
+$price_slug = cp_current_price_slug();
+
+if ( !empty( $price_slug ) ) {
+	$page_index = substr( $chunks[count( $chunks )], 1, strlen( $chunks[count( $chunks )] ) - 3 );
+	
+	$chunks[count( $chunks )] = 'o%s' . $price_slug . '/';
+} else {
+	$page_index = substr( $chunks[count( $chunks )], 1, strlen( $chunks[count( $chunks )] ) );
+	
+	if ( is_numeric( $page_index ) ) 
+		$chunks[count( $chunks )] = 'o%s/';
+	else
+		$chunks[] = 'o%s/';
+}
+
+if ( empty( $page_index ) )
+	$page_index = 1;
+
+$url_pattern = cp_get_root_domain() . '/' . join( '/', $chunks);
+
+// get data
 $datas = cp_posts_get_posts( array( 
-		'parent'    => $catetory_id
+			'category_id'    => $cur_category_id,
+			'area_id'        => $cur_area_id,
+			'price_from'     => $price_from,
+			'price_to'       => $price_to,
+			'page'           => $page_index
 		) );
 $posts = $datas['posts'];
 
@@ -22,4 +68,5 @@ foreach ( $posts as $post ) :
 </div><!--/row-->
 <?php
 endforeach;
+cp_dtheme_show_pagination( $url_pattern, $page_index, 40, $datas['total'] );
 ?>

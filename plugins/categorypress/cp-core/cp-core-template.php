@@ -90,13 +90,15 @@ function cp_current_area_slug() {
 			if ( $key == $cp->current_categories[ 2 ] )
 				return '';
 		}
-		return $cp->current_categories[ 2 ];
-	}
+		
+		if ( cp_categories_check_category_exists( $cp->current_categories[ 2 ] ) )
+			return $cp->current_categories[ 2 ];
+	}	
 	
 	return '';
 }
 
-function cp_current_price() {
+function cp_current_price_slug() {
 	global $cp;
 	
 	if ( empty( $cp->current_categories ) )
@@ -110,8 +112,13 @@ function cp_current_price() {
 	if ( count( $cp->current_categories ) == 3 ) 
 		$slug = $cp->current_categories[ 2 ];
 	
-	if ( in_array( $slug, CP_Post::$PRICES ) == true )
-		return $slug;
+	if ( strlen( $slug ) > 2 ) 
+		$slug = substr( $slug, strlen( $slug ) - 2, 2);
+		
+	foreach( CP_Post::$PRICES as $key => $value ) {
+		if ( $slug == $key )
+			return $slug;
+	}
 		
 	return false;
 }
