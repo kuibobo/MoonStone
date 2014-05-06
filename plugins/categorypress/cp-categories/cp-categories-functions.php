@@ -198,39 +198,14 @@ function cp_categories_get_id( $slug ) {
 }
 
 function cp_categories_get_categories( $args = '' ) {
-
-	$defaults = array(
-		'type'            => CP_CategoryType::$NORMAL,    // active, newest, alphabetical, random, popular, most-forum-topics or most-forum-posts
-		'order'           => 'DESC',   // 'ASC' or 'DESC'
-		'orderby'         => 'date_created', // date_created, last_activity, total_member_count, name, random
-		'parent_id'       => false,    // Pass a user_id to limit to only categories that this user is a member of
-		'include'         => false,    // Only include these specific categories (category_ids)
-		'exclude'         => false,    // Do not include these specific categories (category_ids)
-		'search_terms'    => false,    // Limit to categories that match these search terms
-		'per_page'        => 20,       // The number of results to return per page
-		'page'            => 1,        // The page to return if limiting per page
-		'populate_extras' => true,     // Fetch meta such as is_banned and is_member
-	);
-
-	$r = wp_parse_args( $args, $defaults );
-
-	$categories = CP_Category::get( array(
-		'type'            => $r['type'],
-		'parent_id'       => $r['parent_id'],
-		'include'         => $r['include'],
-		'exclude'         => $r['exclude'],
-		'search_terms'    => $r['search_terms'],
-		'per_page'        => $r['per_page'],
-		'page'            => $r['page'],
-		'populate_extras' => $r['populate_extras'],
-		'order'           => $r['order'],
-		'orderby'         => $r['orderby'],
-	) );
-
+ 
+	$categories = CP_Category::get( $args );
+	
 	return apply_filters_ref_array( 'cp_categories_get_categories', array( &$categories, &$r ) );
 }
 
 function cp_categories_get_total_category_count() {
+	
 	if ( !$count = wp_cache_get( 'cp_total_category_count', 'cp' ) ) {
 		$count = CP_Category::get_total_category_count();
 		wp_cache_set( 'cp_total_category_count', $count, 'cp' );

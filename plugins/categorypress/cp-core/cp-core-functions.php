@@ -494,3 +494,37 @@ function cp_core_do_network_admin() {
 	
 	return (bool) apply_filters( 'cp_core_do_network_admin', $retval );
 }
+
+
+function cp_admin_url( $path = '', $scheme = 'admin' ) {
+	echo cp_get_admin_url( $path, $scheme );
+}
+	/**
+	 * Return the correct admin URL based on BuddyPress and WordPress configuration.
+	 *
+	 * @since BuddyPress (1.5.0)
+	 *
+	 * @uses bp_core_do_network_admin()
+	 * @uses network_admin_url()
+	 * @uses admin_url()
+	 *
+	 * @param string $path Optional. The sub-path under /wp-admin to be
+	 *        appended to the admin URL.
+	 * @param string $scheme The scheme to use. Default is 'admin', which
+	 *        obeys {@link force_ssl_admin()} and {@link is_ssl()}. 'http'
+	 *        or 'https' can be passed to force those schemes.
+	 * @return string Admin url link with optional path appended.
+	 */
+	function cp_get_admin_url( $path = '', $scheme = 'admin' ) {
+
+		// Links belong in network admin
+		if ( cp_core_do_network_admin() ) {
+			$url = network_admin_url( $path, $scheme );
+
+		// Links belong in site admin
+		} else {
+			$url = admin_url( $path, $scheme );
+		}
+
+		return $url;
+	}

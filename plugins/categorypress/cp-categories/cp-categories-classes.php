@@ -189,7 +189,18 @@ class CP_Category {
 
 	public static function get( $args = array() ) {
 		global $wpdb, $cp;
-			
+					
+		$defaults = array(
+				'type'            => CP_CategoryType::$NORMAL,    // active, newest, alphabetical, random, popular, most-forum-topics or most-forum-posts
+				'order'           => 'DESC',   // 'ASC' or 'DESC'
+				'orderby'         => 'date_created', // date_created, last_activity, total_member_count, name, random
+				'parent_id'       => 0,
+				'per_page'        => 20,       // The number of results to return per page
+				'page'            => 1        // The page to return if limiting per page
+				);
+		
+		$r = wp_parse_args( $args, $defaults );
+		
 		$sql       = array();
 		$total_sql = array();
 		
@@ -197,16 +208,18 @@ class CP_Category {
 		$sql['from']   = " FROM {$cp->categories->table_name} c";
 		$sql['category_join'] = " JOIN {$cp->categories->table_name_c_in_c} cc ON cc.child_id = c.id";
 		
-		$sql['parent_where'] =  $wpdb->prepare( "WHERE cc.parent_id = %d", $args['parent_id'] );
-		$sql['type_where'] =  $wpdb->prepare( " AND c.type = %d", $args['type'] );
+		if ( !empty( $r['parent_id'] ) )
+			$sql['parent_where'] =  $wpdb->prepare( "WHERE cc.parent_id = %d", $r['parent_id'] );
+			
+		$sql['type_where'] =  $wpdb->prepare( " AND c.type = %d", $r['type'] );
 		
 		/** Order/orderby ********************************************/
 		
-		$order   = $args['order'];
-		$orderby = $args['orderby'];
+		$order   = $r['order'];
+		$orderby = $r['orderby'];
 
 	
-		$order_orderby = self::convert_type_to_order_orderby( $args['type'] );
+		$order_orderby = self::convert_type_to_order_orderby( $r['type'] );
 		
 		// If an invalid type is passed, $order_orderby will be
 		// an array with empty values. In this case, we stick
@@ -232,17 +245,17 @@ class CP_Category {
 			$sql[] = "ORDER BY {$orderby} {$order}";
 		}
 		
-		if ( ! empty( $args['per_page'] ) && ! empty( $args['page'] ) ) {
-			$sql['pagination'] = $wpdb->prepare( "LIMIT %d, %d", intval( ( $args['page'] - 1 ) * $args['per_page']), intval( $args['per_page'] ) );
+		if ( ! empty( $r['per_page'] ) && ! empty( $r['page'] ) ) {
+			$sql['pagination'] = $wpdb->prepare( "LIMIT %d, %d", intval( ( $r['page'] - 1 ) * $r['per_page']), intval( $r['per_page'] ) );
 		}
 		
 		// Get paginated results
 		$paged_categories_sql = join( ' ', (array) $sql );
 		$paged_categories     = $wpdb->get_results( $paged_categories_sql );
 		
-		$sql['select'] = "SELECT COUNT(DISTINCT c.id) FROM {$cp->categories->table_name} c";
+		$sql['select'] = "SELECT COUNT(DISTINCT c.id) ";
 		$total_categories_sql = join( ' ', (array) $sql );
-		$total_categories     = $wpdb->get_results( $total_categories_sql );
+		$total_categories     = $wpdb->get_var( $total_categories_sql );
 		
 		unset( $sql );
 		
