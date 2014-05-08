@@ -528,3 +528,15 @@ function cp_admin_url( $path = '', $scheme = 'admin' ) {
 
 		return $url;
 	}
+	
+function cp_admin_list_table_current_bulk_action() {
+	
+	$action = ! empty( $_REQUEST['action'] ) ? $_REQUEST['action'] : '';
+	
+	// If the bottom is set, let it override the action
+	if ( ! empty( $_REQUEST['action2'] ) && $_REQUEST['action2'] != "-1" ) {
+		$action = $_REQUEST['action2'];
+	}
+	
+	return $action;
+}

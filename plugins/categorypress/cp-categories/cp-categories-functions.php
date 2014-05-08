@@ -197,6 +197,16 @@ function cp_categories_get_id( $slug ) {
 	return (int) CP_Category::category_exists( $slug );
 }
 
+function cp_categories_get_types() {
+	$types = array();
+	
+	$types[CP_CategoryType::$NORMAL] = 'normal';
+	$types[CP_CategoryType::$BRAND] = 'brand';
+	$types[CP_CategoryType::$AREA] = 'area';
+	
+	return $types;
+}
+
 function cp_categories_get_categories( $args = '' ) {
  
 	$categories = CP_Category::get( $args );

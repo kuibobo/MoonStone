@@ -26,33 +26,55 @@ function cp_category_add_admin_menu() {
 }
 add_action( cp_core_admin_hook(), 'cp_category_add_admin_menu' );
 
-/**
- * Output the category component admin screens.
- *
- * @since CategoryPress (1.6.0)
- */
-function cp_category_admin() {
-	// Decide whether to load the index or edit screen
-	$doaction = ! empty( $_REQUEST['action'] ) ? $_REQUEST['action'] : '';
-	
-	// Display the single category edit screen
-	if ( 'edit' == $doaction && ! empty( $_GET['cid'] ) )
-		cp_category_admin_edit();
-	
-	// Otherwise, display the category index screen
-	else
-		cp_category_admin_index();
-}
-
 function cp_category_admin_load() {
 	global $cp_category_list_table;
 	
 	// Decide whether to load the dev version of the CSS and JavaScript
 	$min = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : 'min.';
 
+	// Build redirection URL
+	$redirect_to = remove_query_arg( array( 'action', 'cid', 'deleted', 'error' ), $_SERVER['REQUEST_URI'] );
+
+	$doaction = cp_admin_list_table_current_bulk_action();
+
 	// Edit screen
 	if ( 'edit' == $doaction && ! empty( $_GET['cid'] ) ) {
 	
+	} else if ( 'save' == $doaction ) {
+		// Get activity ID
+		$category_id = (int) $_REQUEST['cid'];
+
+		// Check this is a valid form submission
+		check_admin_referer( 'edit-category_' . $category_id );
+
+		// Get the activity from the database
+		$category = cp_categories_get_category( array( 'id' => $category_id ) );
+		
+		if ( isset( $_POST['cp-category-type'] ) )
+			$category->type = $_POST['cp-category-type'];
+			
+		if ( isset( $_POST['cp-category-name'] ) )
+			$category->name = $_POST['cp-category-name'];
+			
+		if ( isset( $_POST['cp-category-slug'] ) )
+			$category->slug = $_POST['cp-category-slug'];
+			
+		if ( isset( $_POST['cp-category-description'] ) )
+			$category->description = $_POST['cp-category-description'];
+			
+		// Save
+		$result = $category->save();
+		
+		if ( false === $result )
+			$error = $activity->id;
+			
+		if ( $error )
+			$redirect_to = add_query_arg( 'error', (int) $error, $redirect_to );
+		else
+			$redirect_to = add_query_arg( 'updated', (int) $category->id, $redirect_to );
+			
+		wp_redirect( $redirect_to );
+		exit;
 	} else {
 		$cp_category_list_table = new CP_Categories_List_Table();
 	}
@@ -77,19 +99,12 @@ class CP_Categories_List_Table extends WP_List_Table {
 		$include_id       = false;
 		$search_terms     = false;
 		$sort             = 'DESC';
-		$spam             = 'ham_only';
 
 		// Set current page
 		$page = $this->get_pagenum();
 
 		// Set per page from the screen options
 		$per_page = $this->get_items_per_page( str_replace( '-', '_', "{$this->screen->id}_per_page" ) );
-
-		// Check if we're on the "Spam" view
-		if ( !empty( $_REQUEST['category_status'] ) && 'spam' == $_REQUEST['category_status'] ) {
-			$spam       = 'spam_only';
-			$this->view = 'spam';
-		}
 
 		// Sort order
 		if ( !empty( $_REQUEST['order'] ) && 'desc' != $_REQUEST['order'] )
@@ -107,9 +122,6 @@ class CP_Categories_List_Table extends WP_List_Table {
 		if ( !empty( $_REQUEST['cid'] ) )
 			$include_id = (int) $_REQUEST['cid'];
 
-		// Get the spam total (ignoring any search query or filter)
-		$this->spam_count = 998;
-
 		// Get the categories from the database
 		$categories = cp_categories_get_categories( array( 
 														'parent_id'      => $parent_id,
@@ -118,7 +130,7 @@ class CP_Categories_List_Table extends WP_List_Table {
 
 		// If we're viewing a specific category, flatten all activites into a single array.
 		if ( $include_id ) {
-			$categories['categories'] = BP_category_List_Table::flatten_category_array( $categories['categories'] );
+			$categories['categories'] = CP_Categories_List_Table::flatten_category_array( $categories['categories'] );
 			$categories['total']      = count( $categories['categories'] );
 
 			// Sort the array by the category object's date_recorded value
@@ -197,13 +209,11 @@ class CP_Categories_List_Table extends WP_List_Table {
 
 		$even = ! $even;
 	}
-
-
+	
 	function get_bulk_actions() {
 		$actions = array();
-		$actions['bulk_spam']   = __( 'Mark as Spam', 'categorypress' );
-		$actions['bulk_ham']    = __( 'Not Spam', 'categorypress' );
-		$actions['bulk_delete'] = __( 'Delete Permanently', 'categorypress' );
+		
+		$actions['bulk_delete'] = __( 'Delete', 'categorypress' );
 
 		return $actions;
 	}
@@ -228,8 +238,8 @@ class CP_Categories_List_Table extends WP_List_Table {
 		$selected = !empty( $_REQUEST['category_type'] ) ? $_REQUEST['category_type'] : '';
 
 		// Get all types of activities, and sort alphabetically.
-		$actions  = bp_activity_get_types();
-		natsort( $actions );
+		$actions  = cp_categories_get_types();
+		//natsort( $actions );
 	?>
 
 		<div class="alignleft actions">
@@ -298,12 +308,95 @@ class CP_Categories_List_Table extends WP_List_Table {
 	}
 
 	function column_description( $item ) {
-		echo $item->description; 
+		echo $item['description']; 
 	}
 }
 
+/**
+ * Output the category component admin screens.
+ *
+ * @since CategoryPress (1.6.0)
+ */
+function cp_category_admin() {
+	// Decide whether to load the index or edit screen
+	$doaction = ! empty( $_REQUEST['action'] ) ? $_REQUEST['action'] : '';
+	
+	// Display the single category edit screen
+	if ( 'edit' == $doaction && ! empty( $_GET['cid'] ) )
+		cp_category_admin_edit();
+	
+	// Otherwise, display the category index screen
+	else
+		cp_category_admin_index();
+}
+
+
+function cp_category_admin_edit() {
+	if ( ! is_super_admin() )
+		die( '-1' );
+	
+	$category = cp_categories_get_category( array(
+		'id' => ! empty( $_REQUEST['cid'] ) ? (int) $_REQUEST['cid'] : 0,
+		) );
+		
+	$form_url = remove_query_arg( array( 'action', 'deleted', 'error', 'spammed', 'unspammed', ), $_SERVER['REQUEST_URI'] );
+	$form_url = add_query_arg( 'action', 'save', $form_url );
+	
+	$types  = cp_categories_get_types();
+?>
+	<div class="wrap">
+		<?php screen_icon( 'categorypress-activity' ); ?>
+		<h2><?php  _e( 'Edit Category', 'categorypress' ) ; ?></h2>
+		
+		<?php if ( ! empty( $category ) ) : ?>
+		
+			<form class="validate" action="<?php echo esc_attr( $form_url ); ?>" method="post" id="category_update">
+				<table class="form-table">
+					<tr class="form-field form-required">
+						<th scope="row" valign="top"><label for="name"><?php _ex( 'Name', 'categorypress'); ?></label></th>
+						<td><input name="name" id="cp-category-name" type="text" value="<?php if ( isset( $category->name ) ) echo esc_attr($category->name); ?>" size="40" aria-required="true" />
+						<p class="description"><?php _e( 'The name is how it appears on your site.', 'categorypress' ); ?></p></td>
+					</tr>
+					<tr class="form-field form-required">
+						<th scope="row" valign="top"><label for="name"><?php _ex( 'Type', 'categorypress'); ?></label></th>
+						<td>
+						<select name="category_type">
+							<option value="" <?php selected( !$category->type ); ?>><?php _e( '-Please Selecte-', 'categorypress' ); ?></option>
+
+							<?php foreach ( $types as $k => $v ) : ?>
+								<option value="<?php echo esc_attr( $k ); ?>" <?php selected( $k,  $category->type ); ?>><?php echo esc_html( $v ); ?></option>
+							<?php endforeach; ?>
+						</select>
+						</td>
+					</tr>
+					<tr class="form-field">
+						<th scope="row" valign="top"><label for="slug"><?php _ex( 'Slug', 'categorypress'); ?></label></th>
+						<td><input name="cp-category-slug" id="cp-category-slug" type="text" value="<?php if ( isset( $category->slug ) ) echo esc_attr(apply_filters('editable_slug', $category->slug)); ?>" size="40" />
+						<p class="description"><?php _e( 'The &#8220;slug&#8221; is the URL-friendly version of the name. It is usually all lowercase and contains only letters, numbers, and hyphens.', 'categorypress' ); ?></p></td>
+					</tr>
+					<tr class="form-field">
+						<th scope="row" valign="top"><label for="parent"><?php _ex( 'Parent', 'categorypress'); ?></label></th>
+						<td><input name="cp-category-parent" id="cp-category-parent" type="text" value="<?php if ( isset( $category->parent_id ) ) echo esc_attr($category->parent_id); ?>" size="40" aria-required="true" />
+							<p class="description"><?php _e( 'Categories, unlike tags, can have a hierarchy. You might have a Jazz category, and under that have children categories for Bebop and Big Band. Totally optional.', 'categorypress' ); ?></p></td>
+					</tr>
+
+					<tr class="form-field">
+						<th scope="row" valign="top"><label for="description"><?php _ex('Description', 'Taxonomy Description'); ?></label></th>
+						<td><textarea name="cp-category-description" id="cp-category-description" rows="5" cols="50" class="large-text"><?php echo $category->description; // textarea_escaped ?></textarea><br />
+						<span class="description"><?php _e('The description is not prominent by default; however, some themes may show it.'); ?></span></td>
+					</tr>
+				</table>
+				<?php wp_nonce_field( 'edit-category_' . $category->id ); ?>
+				<?php submit_button( __('Update') );?>
+			</form>
+			
+		<?php endif;?>
+	</div>			
+<?
+}
+	
 function cp_category_admin_index() {
-	global $cp_category_list_table;
+	global $cp_category_list_table, $plugin_page;
 	
 	$cp_category_list_table->prepare_items();;
 ?>
@@ -330,8 +423,9 @@ function cp_category_admin_index() {
 		<div class="col-container">
 			<div id="col-right">
 				<div class="col-wrap">
-					<form id="posts-filter">
-						
+					<form id="cp-categories-form" action="" method="get">
+						<input type="hidden" name="page" value="<?php echo esc_attr( $plugin_page ); ?>" />
+						<?php $cp_category_list_table->search_box( __( 'Search all Category', 'categorypress' ), 'bp-activity' ); ?>
 						<?php $cp_category_list_table->display(); ?>
 						
 					</form>

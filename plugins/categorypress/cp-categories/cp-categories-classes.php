@@ -32,7 +32,7 @@ class CP_Category {
 			$this->name              = $field->name;
 			$this->description       = $field->description;
 			$this->slug              = $field->slug;
-			$this->type              = $filed->type;
+			$this->type              = $field->type;
 			$this->date_created      = $field->date_created;
 		}
 	}
@@ -191,7 +191,7 @@ class CP_Category {
 		global $wpdb, $cp;
 					
 		$defaults = array(
-				'type'            => CP_CategoryType::$NORMAL,    // active, newest, alphabetical, random, popular, most-forum-topics or most-forum-posts
+				'type'            => 0,    // active, newest, alphabetical, random, popular, most-forum-topics or most-forum-posts
 				'order'           => 'DESC',   // 'ASC' or 'DESC'
 				'orderby'         => 'date_created', // date_created, last_activity, total_member_count, name, random
 				'parent_id'       => 0,
@@ -210,8 +210,9 @@ class CP_Category {
 		
 		if ( !empty( $r['parent_id'] ) )
 			$sql['parent_where'] =  $wpdb->prepare( "WHERE cc.parent_id = %d", $r['parent_id'] );
-			
-		$sql['type_where'] =  $wpdb->prepare( " AND c.type = %d", $r['type'] );
+		
+		if ( !empty( $r['type'] ) )
+			$sql['type_where'] =  $wpdb->prepare( " AND c.type = %d", $r['type'] );
 		
 		/** Order/orderby ********************************************/
 		
