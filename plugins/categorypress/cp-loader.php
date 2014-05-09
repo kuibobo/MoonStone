@@ -86,6 +86,7 @@ if ( !class_exists( 'CategoryPress' ) ) :
 			
 			require( $this->plugin_dir . 'cp-core/cp-core-dependency.php' );
 			require( $this->plugin_dir . 'cp-core/cp-core-actions.php' );
+			require( $this->plugin_dir . 'cp-core/cp-core-caps.php'       );
 			require( $this->plugin_dir . 'cp-core/cp-core-update.php' );
 			require( $this->plugin_dir . 'cp-core/cp-core-options.php' );
 			require( $this->plugin_dir . 'cp-core/cp-core-classes.php' );

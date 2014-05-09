@@ -33,13 +33,19 @@ function cp_category_admin_load() {
 	$min = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : 'min.';
 
 	// Build redirection URL
-	$redirect_to = remove_query_arg( array( 'action', 'cid', 'deleted', 'error' ), $_SERVER['REQUEST_URI'] );
+	$redirect_to = remove_query_arg( array( 'action', 'cid', 'deleted', 'error' ), wp_get_referer() );
 
 	$doaction = cp_admin_list_table_current_bulk_action();
 
 	// Edit screen
 	if ( 'edit' == $doaction && ! empty( $_GET['cid'] ) ) {
 	
+	} else if ( 'delete' == $doaction ) {
+
+		$redirect_to = add_query_arg( 'deleted', -1, $redirect_to );
+		
+		wp_redirect( $redirect_to );
+		exit;
 	} else if ( 'save' == $doaction ) {
 		// Get activity ID
 		$category_id = (int) $_REQUEST['cid'];
@@ -125,7 +131,8 @@ class CP_Categories_List_Table extends WP_List_Table {
 		// Get the categories from the database
 		$categories = cp_categories_get_categories( array( 
 														'parent_id'      => $parent_id,
-														'page'           => $page_index
+														'page'           => $page,
+														'per_page'       => $per_page
 													) );
 
 		// If we're viewing a specific category, flatten all activites into a single array.
@@ -293,8 +300,9 @@ class CP_Categories_List_Table extends WP_List_Table {
 		// Rollover actions
 		$actions['view'] = sprintf( '<a href="%s">%s</a>', $view_url, __( 'View', 'categorypress' ) );
 		$actions['edit'] = sprintf( '<a href="%s">%s</a>', $edit_url, __( 'Edit', 'categorypress' ) );
-		$actions['delete'] = sprintf( '<a href="%s">%s</a>', $delete_url, __( 'Delete', 'categorypress' ) );
-		
+		//$actions['delete'] = sprintf( '<a href="%s">%s</a>', $delete_url, __( 'Delete', 'categorypress' ) );
+		$actions['delete'] = sprintf( '<a href="%s" onclick="%s">%s</a>', $delete_url, "javascript:return confirm('" . esc_js( __( 'Are you sure?', 'categorypress' ) ) . "'); ", __( 'Delete', 'categorypress' ) );
+
 		// Start timestamp
 		echo '<div class="submitted-on">';
 
@@ -339,7 +347,7 @@ function cp_category_admin_edit() {
 		'id' => ! empty( $_REQUEST['cid'] ) ? (int) $_REQUEST['cid'] : 0,
 		) );
 		
-	$form_url = remove_query_arg( array( 'action', 'deleted', 'error', 'spammed', 'unspammed', ), $_SERVER['REQUEST_URI'] );
+	$form_url = remove_query_arg( array( 'action', 'deleted', 'error' ), $_SERVER['REQUEST_URI'] );
 	$form_url = add_query_arg( 'action', 'save', $form_url );
 	
 	$types  = cp_categories_get_types();
@@ -354,15 +362,14 @@ function cp_category_admin_edit() {
 				<table class="form-table">
 					<tr class="form-field form-required">
 						<th scope="row" valign="top"><label for="name"><?php _ex( 'Name', 'categorypress'); ?></label></th>
-						<td><input name="name" id="cp-category-name" type="text" value="<?php if ( isset( $category->name ) ) echo esc_attr($category->name); ?>" size="40" aria-required="true" />
+						<td><input name="cp-category-name" id="cp-category-name" type="text" value="<?php if ( isset( $category->name ) ) echo esc_attr($category->name); ?>" size="40" aria-required="true" />
 						<p class="description"><?php _e( 'The name is how it appears on your site.', 'categorypress' ); ?></p></td>
 					</tr>
 					<tr class="form-field form-required">
 						<th scope="row" valign="top"><label for="name"><?php _ex( 'Type', 'categorypress'); ?></label></th>
 						<td>
-						<select name="category_type">
+						<select name="cp-category-type">
 							<option value="" <?php selected( !$category->type ); ?>><?php _e( '-Please Selecte-', 'categorypress' ); ?></option>
-
 							<?php foreach ( $types as $k => $v ) : ?>
 								<option value="<?php echo esc_attr( $k ); ?>" <?php selected( $k,  $category->type ); ?>><?php echo esc_html( $v ); ?></option>
 							<?php endforeach; ?>
@@ -398,8 +405,55 @@ function cp_category_admin_edit() {
 function cp_category_admin_index() {
 	global $cp_category_list_table, $plugin_page;
 	
-	$cp_category_list_table->prepare_items();;
-?>
+	$messages = array();
+
+	// If the user has just made a change to an activity item, build status messages
+	if ( ! empty( $_REQUEST['deleted'] ) || ! empty( $_REQUEST['error'] ) || ! empty( $_REQUEST['updated'] ) ) {
+		$deleted   = ! empty( $_REQUEST['deleted']   ) ? (int) $_REQUEST['deleted']   : 0;
+		$errors    = ! empty( $_REQUEST['error']     ) ? $_REQUEST['error']           : '';
+		$updated   = ! empty( $_REQUEST['updated']   ) ? (int) $_REQUEST['updated']   : 0;
+
+		$errors = array_map( 'absint', explode( ',', $errors ) );
+
+		// Make sure we don't get any empty values in $errors
+		for ( $i = 0, $errors_count = count( $errors ); $i < $errors_count; $i++ ) {
+			if ( 0 === $errors[$i] ) {
+				unset( $errors[$i] );
+			}
+		}
+
+		// Reindex array
+		$errors = array_values( $errors );
+
+		if ( $deleted != 0 )
+			$messages[] = sprintf( _n( '%s category item has been permanently deleted.', '%s category items have been permanently deleted.', $deleted, 'categorypress' ), number_format_i18n( $deleted ) );
+
+		if ( ! empty( $errors ) ) {
+			if ( 1 == count( $errors ) ) {
+				$messages[] = sprintf( __( 'An error occurred when trying to update category ID #%s.', 'categorypress' ), number_format_i18n( $errors[0] ) );
+
+			} else {
+				$error_msg  = __( 'Errors occurred when trying to update these category items:', 'categorypress' );
+				$error_msg .= '<ul class="category-errors">';
+
+				// Display each error as a list item
+				foreach ( $errors as $error ) {
+					// Translators: This is a bulleted list of item IDs
+					$error_msg .= '<li>' . sprintf( __( '#%s', 'categorypress' ), number_format_i18n( $error ) ) . '</li>';
+				}
+
+				$error_msg  .= '</ul>';
+				$messages[] = $error_msg;
+			}
+		}
+
+		if ( $updated > 0 )
+			$messages[] = __( 'The category item has been updated succesfully.', 'categorypress' );
+	}
+	
+	$cp_category_list_table->prepare_items();
+	$types  = cp_categories_get_types(); ?>
+	
 	<div class="wrap nosubsub">
 		<h2>
 			<?php if ( !empty( $_REQUEST['cid'] ) ) : ?>
@@ -439,28 +493,42 @@ function cp_category_admin_index() {
 				<div class="col-wrap">
 					<div class="form-wrap">
 						<h3><?php _e( 'Add New Category', 'categorypress' ); ?></h3>
-						<form class="validate" action="" method="post" id="category_add">
+						<?php
+						$form_url = remove_query_arg( array( 'action', 'deleted', 'error', 'updated' ), $_SERVER['REQUEST_URI'] );
+						$form_url = add_query_arg( 'action', 'save', $form_url );
+						?>
+						<form class="validate" action="<?php echo esc_attr( $form_url ); ?>" method="post" id="category_add">
 							<div class="form-field form-required">
-								<label for="name"><?php _e( 'Name', 'categorypress' ); ?></label>
-								<input type="text" aria-required="true" size="40" value="" id="name" name="name">
+								<label for="cp-category-name"><?php _e( 'Name', 'categorypress' ); ?></label>
+								<input type="text" aria-required="true" size="40" value="" id="cp-category-name" name="cp-category-name">
 								<p><?php _e( 'The name is how it appears on your site.', 'categorypress' ); ?></p>
 							</div>
 							<div class="form-field">
 								<label for="slug"><?php _ex( 'Slug', 'categorypress' ); ?></label>
-								<input name="slug" id="slug" type="text" value="" size="40" />
+								<input name="cp-category-slug" id="cp-category-slug" type="text" value="" size="40" />
 								<p><?php _e( 'The &#8220;slug&#8221; is the URL-friendly version of the name. It is usually all lowercase and contains only letters, numbers, and hyphens.', 'categorypress' ); ?></p>
 							</div>
 							<div class="form-field">
-								<label for="slug"><?php _ex( 'Parent', 'categorypress' ); ?></label>
-								<input name="slug" id="slug" type="text" value="" size="40" />
+								<label for="cp-category-type"><?php _ex( 'Type', 'categorypress' ); ?></label>
+								<select name="cp-category-type">
+									<option value=""><?php _e( '-Please Selecte-', 'categorypress' ); ?></option>
+									<?php foreach ( $types as $k => $v ) : ?>
+										<option value="<?php echo esc_attr( $k ); ?>"><?php echo esc_html( $v ); ?></option>
+									<?php endforeach; ?>
+								</select>
+							</div>
+							<div class="form-field">
+								<label for="cp-category-parent"><?php _ex( 'Parent', 'categorypress' ); ?></label>
+								<input name="cp-category-parent" id="cp-category-parent" type="text" value="" size="40" />
 								<p><?php _e( 'Categories, unlike tags, can have a hierarchy. You might have a Jazz category, and under that have children categories for Bebop and Big Band. Totally optional.', 'categorypress' ); ?></p>
 							</div>
 							<div class="form-field">
-								<label for="description"><?php _ex( 'Description', 'categorypress' ); ?></label>
-								<textarea name="description" id="description" rows="5" cols="40"></textarea>
+								<label for="cp-category-description"><?php _ex( 'Description', 'categorypress' ); ?></label>
+								<textarea name="cp-category-description" id="description" rows="5" cols="40"></textarea>
 								<p><?php _e( 'The description is not prominent by default; however, some themes may show it.', 'categorypress' ); ?></p>
 							</div>
-							<p class="submit"><input type="submit" value="<?php _e( 'Add New Category', 'categorypress' ); ?>" class="button button-primary" id="submit" name="submit"></p>
+							<?php wp_nonce_field( 'edit-category_0' ); ?>
+							<?php submit_button( __( 'Add New Category', 'categorypress' ) );?>
 						</form>
 					</div>
 				</div>

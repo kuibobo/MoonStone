@@ -43,7 +43,7 @@ class CP_Category {
 		if ( $this->exists() )
 			$sql_cmd = $wpdb->prepare( "UPDATE {$cp->categories->table_name} SET name = %s, description = %s, slug = %s, type = %d, date_created = %s WHERE id = %d", $this->name, $this->description, $this->slug, $this->type, cp_core_current_time(), $this->id );
 		else
-			$sql_cmd = $wpdb->prepare( "INSERT INTO {$cp->categories->table_name} (name, description, slug, type, date_created) VALUES (%d, %s, %s, %s, %d, %s)", $this->name, $this->description, $this->slug, $this->type, cp_core_current_time() );
+			$sql_cmd = $wpdb->prepare( "INSERT INTO {$cp->categories->table_name} (name, description, slug, type, date_created) VALUES (%s, %s, %s, %d, %s)", $this->name, $this->description, $this->slug, $this->type, cp_core_current_time() );
 
 		if ( false === $wpdb->query($sql_cmd) )
 			return false;
@@ -191,7 +191,7 @@ class CP_Category {
 		global $wpdb, $cp;
 					
 		$defaults = array(
-				'type'            => 0,    // active, newest, alphabetical, random, popular, most-forum-topics or most-forum-posts
+				'type'            => '',    // active, newest, alphabetical, random, popular, most-forum-topics or most-forum-posts
 				'order'           => 'DESC',   // 'ASC' or 'DESC'
 				'orderby'         => 'date_created', // date_created, last_activity, total_member_count, name, random
 				'parent_id'       => 0,
@@ -206,12 +206,14 @@ class CP_Category {
 		
 		$sql['select'] = "SELECT *";
 		$sql['from']   = " FROM {$cp->categories->table_name} c";
-		$sql['category_join'] = " JOIN {$cp->categories->table_name_c_in_c} cc ON cc.child_id = c.id";
 		
-		if ( !empty( $r['parent_id'] ) )
+		
+		if ( !empty( $r['parent_id'] ) ) {
+			$sql['category_join'] = " JOIN {$cp->categories->table_name_c_in_c} cc ON cc.child_id = c.id";
 			$sql['parent_where'] =  $wpdb->prepare( "WHERE cc.parent_id = %d", $r['parent_id'] );
+		}
 		
-		if ( !empty( $r['type'] ) )
+		if ( $r['type'] != '' )
 			$sql['type_where'] =  $wpdb->prepare( " AND c.type = %d", $r['type'] );
 		
 		/** Order/orderby ********************************************/
@@ -255,6 +257,7 @@ class CP_Category {
 		$paged_categories     = $wpdb->get_results( $paged_categories_sql );
 		
 		$sql['select'] = "SELECT COUNT(DISTINCT c.id) ";
+		$sql['pagination'] = '';
 		$total_categories_sql = join( ' ', (array) $sql );
 		$total_categories     = $wpdb->get_var( $total_categories_sql );
 		

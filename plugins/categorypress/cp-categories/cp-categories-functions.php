@@ -27,7 +27,7 @@ function cp_categories_get_category( $args = '' ) {
 
 	if ( !$category = wp_cache_get( $cache_key, 'cp' ) ) {
 		
-		if ( !empty( $id ) )
+		if ( empty( $slug ) )
 			$category = new CP_Category( $id );
 		else
 			$category = CP_Category::get_by_slug( $slug );
