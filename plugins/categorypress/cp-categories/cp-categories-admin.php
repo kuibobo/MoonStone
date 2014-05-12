@@ -3,6 +3,9 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
+// Include WP's list table class
+if ( !class_exists( 'WP_List_Table' ) ) require( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
+
 /**
  * Register the Category component admin screen.
  *
@@ -11,15 +14,14 @@ if ( !defined( 'ABSPATH' ) ) exit;
 function cp_category_add_admin_menu() {
 	
 	// Add our screen
-	$hook = add_menu_page(
+	$hook = add_submenu_page(
+			'cp-general-settings',
 			__( 'Category', 'categorypress' ),
 			__( 'Category', 'categorypress' ),
 			'administrator',
 			'cp-category',
-			'cp_category_admin',
-			'div'
+			'cp_category_admin'
 			);
-	
 	
 	// Hook into early actions to load custom CSS and our init handler.
 	add_action( "load-$hook", 'cp_category_admin_load' );

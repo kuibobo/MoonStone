@@ -36,6 +36,8 @@ if ( !class_exists( 'CategoryPress' ) ) :
 		
 		public $options = array();
 		
+		public $loaded_components = array();
+		
 		private static $instance;
 		
 		private function __construct() {}

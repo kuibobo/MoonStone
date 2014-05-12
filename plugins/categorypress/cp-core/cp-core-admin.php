@@ -24,7 +24,7 @@ class CP_Admin {
 		$this->js_url     = trailingslashit( $this->admin_url . 'js'            ); // Admin css URL
 		
 		// Main settings page
-		$this->settings_page = cp_core_do_network_admin() ? 'settings.php' : 'options-general.php';
+		$this->settings_page = 'cp-general-settings';//cp_core_do_network_admin() ? 'settings.php' : 'options-general.php';
 	}
 	
 	private function includes() {
@@ -66,6 +66,19 @@ class CP_Admin {
 		add_filter( 'network_admin_plugin_action_links', array( $this, 'modify_plugin_action_links' ), 10, 2 );
 	}
 	
+	public function modify_plugin_action_links( $links, $file ) {
+
+		// Return normal links if not BuddyPress
+		if ( plugin_basename( categorypress()->file ) != $file )
+			return $links;
+
+		// Add a few links to the existing links array
+		return array_merge( $links, array(
+			'settings' => '<a href="' . add_query_arg( array( 'page' => 'cp-components' ), cp_get_admin_url( $this->settings_page ) ) . '">' . esc_html__( 'Settings', 'categorypress' ) . '</a>',
+			'about'    => '<a href="' . add_query_arg( array( 'page' => 'cp-about'      ), cp_get_admin_url( 'index.php'          ) ) . '">' . esc_html__( 'About',    'categorypress' ) . '</a>'
+		) );
+	}
+	
 	public function admin_head() {
 		
 		// Settings pages
@@ -94,23 +107,40 @@ class CP_Admin {
 				
 		$hooks = array();
 
-		// Changed in BP 1.6 . See cp_core_admin_backpat_menu()
 		$hooks[] = add_menu_page(
 			__( 'CategoryPress', 'categorypress' ),
 			__( 'CategoryPress', 'categorypress' ),
 			'manage_options',
-			'cp-general-settings',
-			'cp_core_admin_backpat_menu',
-			'div'
+			$this->settings_page,
+			'cp_core_admin_backpat_menu'
 		);
 		
 		$hooks[] = add_submenu_page(
-			'cp-general-settings',
-			__( 'CategoryPress Help', 'categorypress' ),
-			__( 'Help', 'categorypress' ),
+			$this->settings_page,
+			__( 'CategoryPress Settings', 'categorypress' ),
+			__( 'Settings', 'categorypress' ),
 			'manage_options',
 			'cp-general-settings',
-			'cp_core_admin_backpat_page'
+			'cp_core_admin_components_settings'
+		);
+		
+		// Add the option pages
+		$hooks[] = add_submenu_page(
+			$this->settings_page,
+			__( 'CategoryPress Pages', 'categorypress' ),
+			__( 'CategoryPress Pages', 'categorypress' ),
+			'manage_options',
+			'cp-page-settings',
+			'cp_core_admin_slugs_settings'
+		);
+
+		$hooks[] = add_submenu_page(
+			$this->settings_page,
+			__( 'CategoryPress Settings', 'categorypress' ),
+			__( 'CategoryPress Settings', 'categorypress' ),
+			'manage_options',
+			'cp-settings',
+			'cp_core_admin_settings'
 		);
 
 		// Fudge the highlighted subnav item when on a CategoryPress admin page
@@ -122,7 +152,7 @@ class CP_Admin {
 	public function admin_bar_about_link( $wp_admin_bar ) {
 		if ( is_user_logged_in() ) {
 			$wp_admin_bar->add_menu( array(
-				'parent' => 'wp-logo',
+				'parent' => 'cp-logo',
 				'id'     => 'cp-about',
 				'title'  => esc_html__( 'About CategoryPress', 'categorypress' ),
 				'href'   => add_query_arg( array( 'page' => 'cp-about' ), cp_get_admin_url( 'index.php' ) ),

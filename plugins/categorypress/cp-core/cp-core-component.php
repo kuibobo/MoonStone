@@ -15,9 +15,11 @@ if ( !class_exists( 'CP_Component' ) ) :
 
 class CP_Component {
 	
-	var $id;
-	var $name;
-	var $path;
+	public $id;
+	public $name;
+	public $path;
+	public $slug = '';
+	public $has_directory = false;
 	
 	function start( $id, $name, $path ) {
 		// Internal identifier of component
@@ -44,10 +46,14 @@ class CP_Component {
 		add_action( 'cp_setup_nav',       array( $this, 'setup_screens' ), 10 );
 	}
 	
-	function setup_globals( $args = '' ) {
+	function setup_globals( $args = array() ) {
+		
+		$default_root_slug = isset( categorypress()->pages->{$this->id}->slug ) ? categorypress()->pages->{$this->id}->slug : '';
 		
 		$defaults = array(
-			'global_tables' => ''
+			'slug'                  => $this->id,
+				'has_directory'         => false,
+			'global_tables'         => ''
 			);
 		
 		$r = wp_parse_args( $args, $defaults );
@@ -57,6 +63,11 @@ class CP_Component {
 				$this->{$global_name} = $table_name;
 			}
 		}
+		
+		$this->slug                  = apply_filters( 'cp_' . $this->id . '_slug',                  $r['slug']                  );
+		$this->has_directory         = apply_filters( 'cp_' . $this->id . '_has_directory',         $r['has_directory']         );
+		
+		categorypress()->loaded_components[$this->slug] = $this->id;
 	}
 	
 	public function setup_screens( $screen_function = '' ) {
