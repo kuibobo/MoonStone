@@ -457,7 +457,7 @@ function cp_category_admin_index() {
 				<div class="col-wrap">
 					<form id="cp-categories-form" action="" method="get">
 						<input type="hidden" name="page" value="<?php echo esc_attr( $plugin_page ); ?>" />
-						<?php $cp_category_list_table->search_box( __( 'Search all Category', 'categorypress' ), 'bp-activity' ); ?>
+						<?php $cp_category_list_table->search_box( __( 'Search all Category', 'categorypress' ), 'cp-category' ); ?>
 						<?php $cp_category_list_table->display(); ?>
 						
 					</form>

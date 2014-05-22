@@ -74,7 +74,7 @@ class CP_Post {
 	}
 		
 	public function delete( $id = null ) {
-		global $wpdb, $ppy;
+		global $wpdb, $cp;
 		
 		if ( empty( $id ) )
 			$id = $this->id;

@@ -11,8 +11,8 @@ class CP_Post_List_Table extends WP_List_Table {
 	public function __construct() {
 		parent::__construct( array(
 			'ajax'     => false,
-			'plural'   => 'categories',
-			'singular' => 'category',
+			'plural'   => 'posts',
+			'singular' => 'post',
 			'screen'   => get_current_screen(),
 		) );
 	}
@@ -122,7 +122,7 @@ class CP_Post_List_Table extends WP_List_Table {
 		$post_status  = cp_posts_get_status();
 		
 		foreach ( $post_status as $k => $v ) 
-			$actions[$k] = esc_html( $v );
+			$actions['bulk_' . $k] = esc_html( $v );
 			
 		return $actions;
 	}
@@ -166,7 +166,7 @@ class CP_Post_List_Table extends WP_List_Table {
 	}
 	
 	function column_cb( $item ) {
-		printf( '<label class="screen-reader-text" for="aid-%1$d">' . __( 'Select activity item %1$d', 'categorypress' ) . '</label><input type="checkbox" name="pid[]" value="%1$d" id="aid-%1$d" />', $item['id'] );
+		printf( '<label class="screen-reader-text" for="pid-%1$d">' . __( 'Select activity item %1$d', 'categorypress' ) . '</label><input type="checkbox" name="pid[]" value="%1$d" id="pid-%1$d" />', $item['id'] );
 	}
 	
 	function column_name( $item ) {
@@ -235,7 +235,7 @@ add_action( cp_core_admin_hook(), 'cp_posts_add_admin_menu' );
 
 function cp_posts_admin_load() {
 	global $cp_post_list_table;
-
+	
 	$cp_post_list_table = new CP_Post_List_Table();
 	
 	$doaction = cp_admin_list_table_current_bulk_action();
@@ -250,7 +250,7 @@ function cp_posts_admin_load() {
 		
 		if ( 'bulk_' == substr( $doaction, 0, 5 ) && ! empty( $_REQUEST['pid'] ) ) {
 			// Check this is a valid form submission
-			check_admin_referer( 'bulk-activities' );
+			check_admin_referer( 'bulk-posts' );
 
 			// Trim 'bulk_' off the action name to avoid duplicating a ton of code
 			$new_status = substr( $doaction, 5 );
@@ -259,7 +259,7 @@ function cp_posts_admin_load() {
 		$errors = array();
 		
 		foreach ( $post_ids as $post_id ) {
-			cp_posts_update_status( $post_id, $statu );
+			cp_posts_update_status( $post_id, $new_status );
 		}
 		
 		$redirect_to = add_query_arg( 'updated', $deleted, $redirect_to );
@@ -312,7 +312,7 @@ function cp_posts_admin_index() {
 		<?php // Display each group on its own row ?>
 		<?php $cp_post_list_table->views(); ?>
 
-		<form id="bp-groups-form" action="" method="get">
+		<form id="cp-post-form" action="" method="get">
 			<?php $cp_post_list_table->search_box( __( 'Search all Posts', 'categorypress' ), 'bp-groups' ); ?>
 			<input type="hidden" name="page" value="<?php echo esc_attr( $plugin_page ); ?>" />
 			<?php $cp_post_list_table->display(); ?>

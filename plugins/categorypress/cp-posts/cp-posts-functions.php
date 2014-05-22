@@ -183,8 +183,10 @@ function cp_posts_get_posts( $args = '' ) {
 }
 
 function cp_posts_update_status( $post_id, $status ) {
-	global $wpdb;
+	global $wpdb, $cp;
 	
-	$wpdb->query( $wpdb->prepare( "UPDATE " . $cp->posts->table_name_postmeta . " SET meta_value = %s WHERE post_id = %d AND meta_key = %s", $meta_value, $post_id, $meta_key ) );
-	
+	if ( empty( $post_id ) || !is_numeric( $status ) )
+		return false;
+		
+	return $wpdb->query( $wpdb->prepare( "UPDATE {$cp->posts->table_name} SET status = %d WHERE id = %d ", $status, $post_id ) );
 }
