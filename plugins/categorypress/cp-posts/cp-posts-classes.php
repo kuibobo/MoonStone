@@ -2,6 +2,15 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
+class CP_Post_Status {
+	
+	public static $APPROVED = 0;
+	public static $APPROVALPENDING = 1;
+	public static $BANNED = 2;
+	public static $DISAPPROVED = 3;
+	
+}
+
 class CP_Post {
 	public static $PRICES = array(
 								'p1' => array( 0, 300 ),
@@ -194,6 +203,7 @@ class CP_Post {
 			'area_id'         => false,
 			'price_from'      => false,
 			'price_to'        => false,
+			'status'          => 0,
 			'per_page'        => 20,       // The number of results to return per page
 			'page'            => 1        // The page to return if limiting per page
 		);
@@ -209,17 +219,20 @@ class CP_Post {
 		$tables[]   = "FROM {$cp->posts->table_name} p ";
 		$tables[]   = "JOIN {$cp->posts->table_name_pinc} pinc ON p.id = pinc.post_id";
 		
-		if ( !empty( $args['category_id'] ) ) 
+		if ( !empty( $r['category_id'] ) ) 
 			$clause[] = $wpdb->prepare( " pinc.category_id = %d", $r['category_id'] );
 		
-		if ( !empty( $args['area_id'] ) ) 
+		if ( !empty( $r['area_id'] ) ) 
 			$clause[] = $wpdb->prepare( " pinc.area_id = %d", $r['area_id'] );
 
-		if ( !empty( $args['price_from'] ) ) 
+		if ( !empty( $r['price_from'] ) ) 
 			$clause[] = $wpdb->prepare( " p.price >= %d", $r['price_from'] );
 
-		if ( !empty( $args['price_to'] ) ) 
+		if ( !empty( $r['price_to'] ) ) 
 			$clause[] = $wpdb->prepare( " p.price <= %d", $r['price_to'] );
+		
+		if ( $r['status'] != 0 )
+			$clause[] = $wpdb->prepare( " p.status = %d",  $r['status'] );
 		
 		if ( ! empty( $r['search_terms'] ) ) {
 			$r['search_terms'] = esc_sql( like_escape( $r['search_terms'] ) );

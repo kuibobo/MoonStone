@@ -22,7 +22,7 @@ class CP_Posts_Component extends CP_Component {
 	function __construct() {
 		parent::start(
 			'posts',
-			__( 'posts', 'categorypress' ),
+			__( 'Posts', 'categorypress' ),
 			CP_PLUGIN_DIR
 		);
 	}

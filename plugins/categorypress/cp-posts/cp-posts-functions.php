@@ -12,6 +12,15 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
+function cp_posts_get_status() {
+	return array(
+			CP_Post_Status::$APPROVED => 'Approved' ,
+			CP_Post_Status::$APPROVALPENDING => 'ApprovalPending' ,
+			CP_Post_Status::$BANNED => 'Banned' ,
+			CP_Post_Status::$DISAPPROVED => 'Disapproved' 
+			);
+}
+
 function cp_post_add( $args = '' ) {
 	global $user_ID;
 	
@@ -171,4 +180,11 @@ function cp_posts_get_posts( $args = '' ) {
 	$posts = CP_Post::get( $args );
 	
 	return apply_filters_ref_array( 'cp_posts_get_posts', array( &$posts, &$r ) );
+}
+
+function cp_posts_update_status( $post_id, $status ) {
+	global $wpdb;
+	
+	$wpdb->query( $wpdb->prepare( "UPDATE " . $cp->posts->table_name_postmeta . " SET meta_value = %s WHERE post_id = %d AND meta_key = %s", $meta_value, $post_id, $meta_key ) );
+	
 }

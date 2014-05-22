@@ -46,7 +46,7 @@ function cp_core_admin_slugs_options() {
 	if ( !empty( $directory_pages ) ) : ?>
 		<h3><?php _e( 'Directories', 'categorypress' ); ?></h3>
 
-		<p><?php _e( 'Associate a WordPress Page with each BuddyPress component directory.', 'categorypress' ); ?></p>
+		<p><?php _e( 'Associate a WordPress Page with each CategoryPress component directory.', 'categorypress' ); ?></p>
 		
 		<table class="form-table">
 			<tbody>
@@ -96,5 +96,26 @@ function cp_core_admin_slugs_options() {
 }
 
 function cp_core_admin_slugs_setup_handler() {
+	if ( isset( $_POST['cp-admin-pages-submit'] ) || isset( $_POST['cp-admin-pages-single'] ) ) {
+		if ( !check_admin_referer( 'cp-admin-pages-setup' ) )
+			return false;
+
+		// Then, update the directory pages
+		if ( isset( $_POST['cp_pages'] ) ) {
+
+			$directory_pages = array();
+
+			foreach ( (array) $_POST['cp_pages'] as $key => $value ) {
+				if ( !empty( $value ) ) {
+					$directory_pages[$key] = (int) $value;
+				}
+			}
+			cp_core_update_directory_page_ids( $directory_pages );
+		}
+
+		$base_url = cp_get_admin_url( add_query_arg( array( 'page' => 'cp-page-settings', 'updated' => 'true' ), 'admin.php' ) );
+
+		wp_redirect( $base_url );
+	}
 }
 add_action( 'cp_admin_init', 'cp_core_admin_slugs_setup_handler' );

@@ -191,7 +191,11 @@ function cp_core_get_directory_page_ids() {
 		}
 	}
 	
-	return apply_filters( 'cp_core_get_directory_page_ids', $page_ids );
+	return $page_ids;
+}
+
+function cp_core_update_directory_page_ids( $blog_page_ids ) {
+	cp_update_option( 'cp-pages', $blog_page_ids );
 }
 
 /**

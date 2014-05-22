@@ -6,88 +6,6 @@ if ( !defined( 'ABSPATH' ) ) exit;
 // Include WP's list table class
 if ( !class_exists( 'WP_List_Table' ) ) require( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
 
-/**
- * Register the Category component admin screen.
- *
- * @since CategoryPress (1.1)
- */
-function cp_category_add_admin_menu() {
-	
-	// Add our screen
-	$hook = add_submenu_page(
-			'cp-general-settings',
-			__( 'Category', 'categorypress' ),
-			__( 'Category', 'categorypress' ),
-			'administrator',
-			'cp-category',
-			'cp_category_admin'
-			);
-	
-	// Hook into early actions to load custom CSS and our init handler.
-	add_action( "load-$hook", 'cp_category_admin_load' );
-}
-add_action( cp_core_admin_hook(), 'cp_category_add_admin_menu' );
-
-function cp_category_admin_load() {
-	global $cp_category_list_table;
-	
-	// Decide whether to load the dev version of the CSS and JavaScript
-	$min = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : 'min.';
-
-	// Build redirection URL
-	$redirect_to = remove_query_arg( array( 'action', 'cid', 'deleted', 'error' ), wp_get_referer() );
-
-	$doaction = cp_admin_list_table_current_bulk_action();
-
-	// Edit screen
-	if ( 'edit' == $doaction && ! empty( $_GET['cid'] ) ) {
-	
-	} else if ( 'delete' == $doaction ) {
-
-		$redirect_to = add_query_arg( 'deleted', -1, $redirect_to );
-		
-		wp_redirect( $redirect_to );
-		exit;
-	} else if ( 'save' == $doaction ) {
-		// Get activity ID
-		$category_id = (int) $_REQUEST['cid'];
-
-		// Check this is a valid form submission
-		check_admin_referer( 'edit-category_' . $category_id );
-
-		// Get the activity from the database
-		$category = cp_categories_get_category( array( 'id' => $category_id ) );
-		
-		if ( isset( $_POST['cp-category-type'] ) )
-			$category->type = $_POST['cp-category-type'];
-			
-		if ( isset( $_POST['cp-category-name'] ) )
-			$category->name = $_POST['cp-category-name'];
-			
-		if ( isset( $_POST['cp-category-slug'] ) )
-			$category->slug = $_POST['cp-category-slug'];
-			
-		if ( isset( $_POST['cp-category-description'] ) )
-			$category->description = $_POST['cp-category-description'];
-			
-		// Save
-		$result = $category->save();
-		
-		if ( false === $result )
-			$error = $activity->id;
-			
-		if ( $error )
-			$redirect_to = add_query_arg( 'error', (int) $error, $redirect_to );
-		else
-			$redirect_to = add_query_arg( 'updated', (int) $category->id, $redirect_to );
-			
-		wp_redirect( $redirect_to );
-		exit;
-	} else {
-		$cp_category_list_table = new CP_Categories_List_Table();
-	}
-}
-
 class CP_Categories_List_Table extends WP_List_Table {
 	
 	public function __construct() {
@@ -102,36 +20,18 @@ class CP_Categories_List_Table extends WP_List_Table {
 	}
 	
 	function prepare_items() {
-		// Option defaults
-		$filter           = array();
-		$include_id       = false;
-		$search_terms     = false;
-		$sort             = 'DESC';
-
 		// Set current page
 		$page = $this->get_pagenum();
 
 		// Set per page from the screen options
 		$per_page = $this->get_items_per_page( str_replace( '-', '_', "{$this->screen->id}_per_page" ) );
 
-		// Sort order
-		if ( !empty( $_REQUEST['order'] ) && 'desc' != $_REQUEST['order'] )
-			$sort = 'ASC';
-			
-		// Filter
-		if ( !empty( $_REQUEST['category_type'] ) )
-			$filter = array( 'action' => $_REQUEST['category_type'] );
-
 		// Are we doing a search?
 		if ( !empty( $_REQUEST['s'] ) )
 			$search_terms = $_REQUEST['s'];
 
-		// Check if user has clicked on a specific category (if so, fetch only that, and any related, category).
-		if ( !empty( $_REQUEST['cid'] ) )
-			$include_id = (int) $_REQUEST['cid'];
-
 		// Get the categories from the database
-		$categories = cp_categories_get_categories( array( 
+		$datas = cp_categories_get_categories( array( 
 														'parent_id'      => $parent_id,
 														'page'           => $page,
 														'per_page'       => $per_page
@@ -139,16 +39,16 @@ class CP_Categories_List_Table extends WP_List_Table {
 
 		// If we're viewing a specific category, flatten all activites into a single array.
 		if ( $include_id ) {
-			$categories['categories'] = CP_Categories_List_Table::flatten_category_array( $categories['categories'] );
-			$categories['total']      = count( $categories['categories'] );
+			$datas['categories'] = CP_Categories_List_Table::flatten_category_array( $datas['categories'] );
+			$datas['total']      = count( $datas['categories'] );
 
 			// Sort the array by the category object's date_recorded value
-			usort( $categories['categories'], create_function( '$a, $b', 'return $a->date_recorded > $b->date_recorded;' ) );
+			usort( $datas['categories'], create_function( '$a, $b', 'return $a->date_recorded > $b->date_recorded;' ) );
 		}
 
 		// bp_category_get returns an array of objects; cast these to arrays for WP_List_Table.
 		$new_categories = array();
-		foreach ( $categories['categories'] as $category_item ) {
+		foreach ( $datas['categories'] as $category_item ) {
 			$new_categories[] = (array) $category_item;
 
 			// Build an array of category-to-user ID mappings for better efficency in the In Response To column
@@ -161,8 +61,8 @@ class CP_Categories_List_Table extends WP_List_Table {
 		// Store information needed for handling table pagination
 		$this->set_pagination_args( array(
 			'per_page'    => $per_page,
-			'total_items' => $categories['total'],
-			'total_pages' => ceil( $categories['total'] / $per_page )
+			'total_items' => $datas['total'],
+			'total_pages' => ceil( $datas['total'] / $per_page )
 		) );
 
 		// Don't truncate category items; bp_category_truncate_entry() needs to be used inside a BP_category_Template loop.
@@ -277,11 +177,6 @@ class CP_Categories_List_Table extends WP_List_Table {
 
 
 	function column_name( $item ) {
-		// Determine what type of item (row) we're dealing with
-		if ( $item['is_spam'] )
-			$item_status = 'spam';
-		else
-			$item_status = 'all';
 
 		// Preorder items: Reply | Edit | Spam | Delete Permanently
 		$actions = array(
@@ -319,6 +214,89 @@ class CP_Categories_List_Table extends WP_List_Table {
 
 	function column_description( $item ) {
 		echo $item['description']; 
+	}
+}
+
+/**
+ * Register the Category component admin screen.
+ *
+ * @since CategoryPress (1.1)
+ */
+function cp_category_add_admin_menu() {
+	
+	// Add our screen
+	$hook = add_submenu_page(
+			'cp-general-settings',
+			__( 'Category', 'categorypress' ),
+			__( 'Category', 'categorypress' ),
+			'administrator',
+			'cp-category',
+			'cp_category_admin'
+			);
+	
+	// Hook into early actions to load custom CSS and our init handler.
+	add_action( "load-$hook", 'cp_category_admin_load' );
+}
+add_action( cp_core_admin_hook(), 'cp_category_add_admin_menu' );
+
+function cp_category_admin_load() {
+	global $cp_category_list_table;
+	
+	// Decide whether to load the dev version of the CSS and JavaScript
+	$min = ( defined( 'SCRIPT_DEBUG' ) && SCRIPT_DEBUG ) ? '' : 'min.';
+
+	// Build redirection URL
+	$redirect_to = remove_query_arg( array( 'action', 'cid', 'deleted', 'error' ), wp_get_referer() );
+
+	$doaction = cp_admin_list_table_current_bulk_action();
+
+	// Edit screen
+	if ( 'edit' == $doaction && ! empty( $_GET['cid'] ) ) {
+	
+	} else if ( 'delete' == $doaction ) {
+
+		$redirect_to = add_query_arg( 'deleted', -1, $redirect_to );
+		
+		wp_redirect( $redirect_to );
+		exit;
+	} else if ( 'save' == $doaction ) {
+		// Get activity ID
+		$category_id = (int) $_REQUEST['cid'];
+
+		// Check this is a valid form submission
+		check_admin_referer( 'edit-category_' . $category_id );
+
+		// Get the activity from the database
+		$category = cp_categories_get_category( array( 'id' => $category_id ) );
+		
+		if ( isset( $_POST['cp-category-type'] ) )
+			$category->type = $_POST['cp-category-type'];
+			
+		if ( isset( $_POST['cp-category-name'] ) )
+			$category->name = $_POST['cp-category-name'];
+			
+		if ( isset( $_POST['cp-category-slug'] ) )
+			$category->slug = $_POST['cp-category-slug'];
+			
+		if ( isset( $_POST['cp-category-description'] ) )
+			$category->description = $_POST['cp-category-description'];
+			
+		// Save
+		$result = $category->save();
+		
+		if ( false === $result )
+			$error = $activity->id;
+			
+		if ( $error )
+			$redirect_to = add_query_arg( 'error', (int) $error, $redirect_to );
+		else
+			$redirect_to = add_query_arg( 'updated', (int) $category->id, $redirect_to );
+			
+		wp_redirect( $redirect_to );
+		exit;
+		
+	} else {
+		$cp_category_list_table = new CP_Categories_List_Table();
 	}
 }
 
@@ -473,8 +451,6 @@ function cp_category_admin_index() {
 		<?php if ( !empty( $messages ) ) : ?>
 			<div id="moderated" class="<?php echo ( ! empty( $_REQUEST['error'] ) ) ? 'error' : 'updated'; ?>"><p><?php echo implode( "<br/>\n", $messages ); ?></p></div>
 		<?php endif; ?>
-		
-		
 		
 		<div class="col-container">
 			<div id="col-right">
