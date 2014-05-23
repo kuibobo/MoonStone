@@ -30,10 +30,12 @@ if ( !empty( $price_slug ) ) {
 } else {
 	$page_index = substr( $chunks[count( $chunks )], 1, strlen( $chunks[count( $chunks )] ) );
 	
-	if ( is_numeric( $page_index ) ) 
+	if ( is_numeric( $page_index ) ) {
 		$chunks[count( $chunks )] = 'o%s/';
-	else
+	} else {
 		$chunks[] = 'o%s/';
+		$page_index = 1;
+	}
 }
 
 if ( empty( $page_index ) )
