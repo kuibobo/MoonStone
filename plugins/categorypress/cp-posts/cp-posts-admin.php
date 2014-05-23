@@ -18,7 +18,7 @@ class CP_Post_List_Table extends WP_List_Table {
 	}
 	
 	function prepare_items() {
-		$post_status = 0;
+		//$post_status = 0;
 		
 		// Set current page
 		$page = $this->get_pagenum();

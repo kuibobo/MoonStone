@@ -49,6 +49,7 @@ $datas = cp_posts_get_posts( array(
 			'area_id'        => $cur_area_id,
 			'price_from'     => $price_from,
 			'price_to'       => $price_to,
+			'status'         => 0,
 			'page'           => $page_index
 		) );
 $posts = $datas['posts'];
