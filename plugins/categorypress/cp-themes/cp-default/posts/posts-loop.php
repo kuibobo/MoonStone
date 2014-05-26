@@ -30,10 +30,12 @@ if ( !empty( $price_slug ) ) {
 } else {
 	$page_index = substr( $chunks[count( $chunks )], 1, strlen( $chunks[count( $chunks )] ) );
 	
-	if ( is_numeric( $page_index ) ) 
+	if ( is_numeric( $page_index ) ) {
 		$chunks[count( $chunks )] = 'o%s/';
-	else
+	} else {
 		$chunks[] = 'o%s/';
+		$page_index = 1;
+	}
 }
 
 if ( empty( $page_index ) )
@@ -47,6 +49,7 @@ $datas = cp_posts_get_posts( array(
 			'area_id'        => $cur_area_id,
 			'price_from'     => $price_from,
 			'price_to'       => $price_to,
+			'status'         => 0,
 			'page'           => $page_index
 		) );
 $posts = $datas['posts'];

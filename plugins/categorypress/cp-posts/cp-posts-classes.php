@@ -203,7 +203,7 @@ class CP_Post {
 			'area_id'         => false,
 			'price_from'      => false,
 			'price_to'        => false,
-			'status'          => 0,
+		//	'status'          => false,
 			'per_page'        => 20,       // The number of results to return per page
 			'page'            => 1        // The page to return if limiting per page
 		);
@@ -231,7 +231,7 @@ class CP_Post {
 		if ( !empty( $r['price_to'] ) ) 
 			$clause[] = $wpdb->prepare( " p.price <= %d", $r['price_to'] );
 		
-		if ( $r['status'] != 0 )
+		if ( isset( $r['status'] ) )
 			$clause[] = $wpdb->prepare( " p.status = %d",  $r['status'] );
 		
 		if ( ! empty( $r['search_terms'] ) ) {
