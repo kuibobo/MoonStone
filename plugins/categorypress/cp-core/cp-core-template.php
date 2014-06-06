@@ -123,7 +123,7 @@ function cp_current_price_slug() {
 	return false;
 }
 
-function cp_current_post() {
+function cp_current_post_id() {
 	global $cp;
 	
 	$current_post = !empty( $cp->current_post ) ? $cp->current_post : '';
@@ -155,6 +155,15 @@ function cp_get_category_crumbs() {
 	
 	$crumbs = array_reverse( $crumbs );
 	return $crumbs;
+}
+
+function cp_is_single_item() {
+	global $cp;
+	
+	if ( !empty( $cp->is_single_item ) )
+		return true;
+	
+	return false;
 }
 
 /**

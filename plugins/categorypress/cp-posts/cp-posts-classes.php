@@ -101,7 +101,7 @@ class CP_Post {
 	public static function post_exists( $post_id ) {
 		global $wpdb, $cp;
 				
-		if ( empty( $slug ) )
+		if ( empty( $post_id ) )
 			return false;
 			
 		$retval = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM {$cp->posts->table_name} WHERE id = %d", $post_id ) );

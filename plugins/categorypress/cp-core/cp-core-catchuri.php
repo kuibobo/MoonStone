@@ -276,6 +276,7 @@ function cp_core_set_uri_globals() {
 			$post_item = array_pop( $cp_uri );
 			$post_item = explode( '.', $post_item );
 			$cp->current_post = $post_item[0];
+			$cp->is_single_item = true;
 		}
 	}
 	array_shift( $cp_uri );

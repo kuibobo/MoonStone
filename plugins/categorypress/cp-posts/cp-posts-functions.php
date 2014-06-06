@@ -187,6 +187,13 @@ function cp_posts_update_status( $post_id, $status ) {
 	
 	if ( empty( $post_id ) || !is_numeric( $status ) )
 		return false;
-		
+	
 	return $wpdb->query( $wpdb->prepare( "UPDATE {$cp->posts->table_name} SET status = %d WHERE id = %d ", $status, $post_id ) );
+}
+
+function cp_posts_get_permalink( $city_slug, $category_slug, $post_id ) {
+	
+	$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. $city_slug . '/' . $category_slug . '/' . $post_id . '.shtml';
+	
+	return $link;
 }
