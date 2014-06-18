@@ -197,3 +197,37 @@ function cp_posts_get_permalink( $city_slug, $category_slug, $post_id ) {
 	
 	return $link;
 }
+
+function cp_posts_set_category( $post_id, $category_id, $area_id = 0 ) {
+	global $wpdb, $cp;
+	
+	if ( empty( $post_id ) || empty( $category_id ) )
+		return false;
+	
+	$exists = (bool) $wpdb->get_var( $wpdb->prepare( "SELECT child_id FROM {$cp->posts->table_name_pinc} WHERE category_id = %d AND area_id = %d AND post_id = %d", $category_id, $area_id, $post_id ) );
+	
+	if ( !$exists )
+		return $wpdb->query( $wpdb->prepare( "INSERT INTO {$cp->posts->table_name_pinc} (category_id, area_id, post_id) VALUES(%d, %d, %d)", $category_id, $area_id, $post_id ) );
+}
+
+function cp_posts_head() {
+	if ( cp_is_posts_component() ) {
+		$cur_post_id = cp_current_post_id();
+		$post = cp_posts_get_post( array( 'post_id' => $cur_post_id ) );
+		
+		echo '<meta name="keywords" content="' . $post->name . '"/>' . PHP_EOL;
+		echo '<meta name="description" content="' . $post->excerpt . '"/>' . PHP_EOL;
+	}
+}
+add_action ( 'cp_head', 'cp_posts_head' );
+
+function cp_posts_title( $title, $sep, $seplocation ) {
+	if ( cp_is_posts_component() ) {
+		$cur_post_id = cp_current_post_id();
+		$post = cp_posts_get_post( array( 'post_id' => $cur_post_id ) );
+		
+		return $post->name . $sep;
+	}
+	return $title;
+}
+add_filter( 'wp_title', 'cp_posts_title', 10, 3 );

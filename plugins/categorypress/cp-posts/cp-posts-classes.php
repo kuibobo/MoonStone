@@ -21,14 +21,12 @@ class CP_Post {
 								'p6' => array( 5000, 5000000 )
 								);
 	var $id;
-	var $parent;
 	var $author;
 	var $thumb;
 	var $date_created;
 	var $name;
 	var $excerpt;
 	var $price;
-	var $img_count;
 
 	function __construct( $id = null ) {
 		if ( !empty( $id ) )
@@ -42,24 +40,22 @@ class CP_Post {
 		if ( $field = $wpdb->get_row( $sql ) ) {
 			
 			$this->id             = $field->id;
-			$this->parent         = $field->parent;
 			$this->author         = $field->author;
 			$this->thumb          = $field->thumb;
 			$this->date_created   = $field->date_created;
 			$this->name           = $field->name;
 			$this->excerpt        = $field->excerpt;
 			$this->price          = $filed->price;
-			$this->img_count      = $filed->img_count;
 		}
 	}
 
 	public function save() {
 		global $wpdb, $cp;
 
-		if ( $this->exists() )
-			$sql_cmd = $wpdb->prepare( "UPDATE {$cp->posts->table_name} SET parent = %d, author = %d, thumb = %s, date_created = %d, name = %s, excerpt = %s, price = %d, img_count = %d WHERE id = %d", $this->parent, $this->author, $this->thumb, cp_core_current_time(), $this->name, $this->excerpt, $this->price, $this->img_count, $this->id );
+		if ( CP_Post::post_exists( $this->id ) )
+			$sql_cmd = $wpdb->prepare( "UPDATE {$cp->posts->table_name} SET author = %d, thumb = %s, date_created = %d, name = %s, excerpt = %s, price = %d WHERE id = %d", $this->author, $this->thumb, cp_core_current_time(), $this->name, $this->excerpt, $this->price, $this->id );
 		else
-			$sql_cmd = $wpdb->prepare( "INSERT INTO {$cp->posts->table_name} (parent, author, thumb = %s, date_created, name, excerpt, price, img_count) VALUES (%d, %d, %s, %s, %s, %d, %d)", $this->parent, $this->author, $this->thumb, cp_core_current_time(), $this->name, $this->excerpt, $this->price, $this->img_count );
+			$sql_cmd = $wpdb->prepare( "INSERT INTO {$cp->posts->table_name} (author, thumb, date_created, name, excerpt, price) VALUES (%d, %s, %s, %s, %s, %d)", $this->author, $this->thumb, cp_core_current_time(), $this->name, $this->excerpt, $this->price );
 
 
 		if ( false === $wpdb->query($sql_cmd) )

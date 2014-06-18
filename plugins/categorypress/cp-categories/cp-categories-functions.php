@@ -188,6 +188,15 @@ function cp_categories_get_parent( $args = '' ) {
 	return CP_Category::get_parent( $child_id, $slug );
 }
 
+function cp_categories_set_parent( $parent_id, $child_id ) {
+	global $wpdb, $cp;
+	
+	$exists = (bool) $wpdb->get_var( $wpdb->prepare( "SELECT child_id FROM " . $cp->categories->table_name_c_in_c . " WHERE parent_id = %d AND child_id = %d", $parent_id, $child_id ) );
+	
+	if ( !$exists )
+		$wpdb->query( $wpdb->prepare( "INSERT INTO " . $cp->categories->table_name_c_in_c . " ( parent_id, child_id ) VALUES ( %d, %d )", $parent_id, $child_id ) );
+}
+
 function cp_categories_get_current_id() {
 	$slug = cp_current_category_slug();
 	return cp_categories_get_id( $slug );
