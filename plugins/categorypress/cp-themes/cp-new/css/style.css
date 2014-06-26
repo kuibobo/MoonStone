@@ -85,7 +85,7 @@ img.thumbImgs{display:block;background:url(/statics/images/loading.gif) no-repea
 .content h1{font-size:24px;font-weight:100;line-height:30px;margin-bottom:20px}
 .content .con-left{width:420px;float:left}
 .content .con-left .large-Imgs{box-shadow:inset 1px 0px 0px 0 rgba(0, 0, 0, .1),0px 1px 1px rgba(0, 0, 0, .18),1px 0px 1px rgba(0, 0, 0, .15)}
-.content .con-left .large-Imgs img{width:420px;height:300px}
+.content .con-left .large-Imgs img{width:420px;}
 .content .con-right{margin-left:440px;position:relative;padding-right:8px}
 .down{margin:20px 0 0 0;}
 .down .button{margin:10px 0 0 0;}
