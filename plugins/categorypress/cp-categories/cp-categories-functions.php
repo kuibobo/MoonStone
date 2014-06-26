@@ -24,17 +24,17 @@ function cp_categories_get_category( $args = '' ) {
 	extract( $r, EXTR_SKIP );
 	
 	$cache_key = 'CP_Category_' . $id . '_' . $slug ;
-
+	
 	if ( !$category = wp_cache_get( $cache_key, 'cp' ) ) {
 		
 		if ( empty( $slug ) )
 			$category = new CP_Category( $id );
 		else
 			$category = CP_Category::get_by_slug( $slug );
-
+		
 		wp_cache_set( $cache_key, $category, 'cp' );
 	}
-
+	
 	return apply_filters( 'categories_get_category', $category );
 }
 
@@ -45,14 +45,14 @@ function cp_categories_get_category( $args = '' ) {
  * @return string The category's slug
  */
 function cp_categories_get_slug( $category_id ) {
-	$category = categories_get_category( array( 'category_id' => $category_id ) );
+	$category = cp_categories_get_category( array( 'id' => $category_id ) );
 	return !empty( $category->slug ) ? $category->slug : '';
 }
 
 
 function cp_categories_create_category( $args = '' ) {
 	extract( $args );
-
+	
 	/**
 	 * Possible parameters (pass as assoc array):
 	 *	'category_id'
@@ -62,76 +62,76 @@ function cp_categories_create_category( $args = '' ) {
 	 *	'slug'
 	 *	'date_created'
 	 */
-
+	
 	if ( !empty( $category_id ) )
 		$category = categories_get_category( array( 'category_id' => $category_id ) );
 	else
 		$category = new CP_Category;
-
+	
 	if ( !empty( $parent_id ) )
 		$category->parent_id = $parent_id;
 	else
 		$category->parent_id = 0;
-
+	
 	if ( isset( $name ) )
 		$category->name = $name;
-
+	
 	if ( isset( $description ) )
 		$category->description = $description;
-
+	
 	if ( isset( $slug ) && categories_check_slug( $slug ) )
 		$category->slug = $slug;
-
+	
 	if ( isset( $date_created ) )
 		$category->date_created = $date_created;
-
+	
 	if ( !$category->save() )
 		return false;
-
+	
 	do_action( 'categories_created_category', $category->id, $category );
-
+	
 	return $category->id;
 }
 
 function cp_categories_update_categorymeta( $category_id, $meta_key, $meta_value ) {
 	global $wpdb, $cp;
-
+	
 	if ( !is_numeric( $category_id ) )
 		return false;
-
+	
 	$meta_key = preg_replace( '|[^a-z0-9_]|i', '', $meta_key );
-
+	
 	if ( is_string( $meta_value ) )
 		$meta_value = stripslashes( esc_sql( $meta_value ) );
-
+	
 	$meta_value = maybe_serialize( $meta_value );
-
+	
 	$cur = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM " . $cp->categories->table_name_categorymeta . " WHERE category_id = %d AND meta_key = %s", $category_id, $meta_key ) );
-
+	
 	if ( !$cur )
 		$wpdb->query( $wpdb->prepare( "INSERT INTO " . $cp->categories->table_name_categorymeta . " ( category_id, meta_key, meta_value ) VALUES ( %d, %s, %s )", $category_id, $meta_key, $meta_value ) );
 	else if ( $cur->meta_value != $meta_value )
 		$wpdb->query( $wpdb->prepare( "UPDATE " . $cp->categories->table_name_categorymeta . " SET meta_value = %s WHERE category_id = %d AND meta_key = %s", $meta_value, $category_id, $meta_key ) );
 	else
 		return false;
-
+	
 	// Update the cached object and recache
 	wp_cache_set( 'CP_Categorymeta_' . $category_id . '_' . $meta_key, $meta_value, 'cp' );
-
+	
 	return true;
 }
 
 function cp_categories_get_permalink( $slug, $type = false, $ignore_crumb = false ) {
 	
 	switch( $type ) {
-	
+		
 		case CP_CategoryType::$NORMAL:
 		case CP_CategoryType::$BRAND:
 			
 			if ( $ignore_crumb == false ) {
 				
 				$cur_area = cp_current_area_slug();
-									
+				
 				if ( !empty( $cur_area ) )
 					$cur_area .= '/';
 				
@@ -148,13 +148,13 @@ function cp_categories_get_permalink( $slug, $type = false, $ignore_crumb = fals
 					$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/' . cp_current_city_slug() . '/' . $slug;
 			}
 			break;
-			
-		case CP_CategoryType::$AREA:
 		
+		case CP_CategoryType::$AREA:
+			
 			$cur_price = cp_current_price_slug();
 			if ( !empty( $cur_price ) )
 				$cur_price .= '/';
- 
+			
 			$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. cp_current_city_slug() . '/' . cp_current_category_slug() . '/' . $slug . '/' . $cur_price;
 			break;
 		
@@ -164,10 +164,10 @@ function cp_categories_get_permalink( $slug, $type = false, $ignore_crumb = fals
 			
 			if ( !empty( $cur_area ) )
 				$cur_area .= '/';
-								
+			
 			$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. cp_current_city_slug() . '/' . cp_current_category_slug() . '/' . $cur_area . $slug . '/';
 			break;
-			
+		
 	}		
 	
 	return apply_filters_ref_array( 'cp_categories_get_permalink', array( $link, &$slug, &$type ) );
@@ -217,7 +217,7 @@ function cp_categories_get_types() {
 }
 
 function cp_categories_get_categories( $args = '' ) {
- 
+	
 	$categories = CP_Category::get( $args );
 	
 	return apply_filters_ref_array( 'cp_categories_get_categories', array( &$categories, &$r ) );
@@ -229,37 +229,37 @@ function cp_categories_get_total_category_count() {
 		$count = CP_Category::get_total_category_count();
 		wp_cache_set( 'cp_total_category_count', $count, 'cp' );
 	}
-
+	
 	return $count;
 }
 
 function cp_categories_get_user_categories( $user_id = 0, $pag_num = 0, $pag_page = 0 ) {
-
+	
 	if ( empty( $user_id ) )
 		$user_id = bp_displayed_user_id();
-
+	
 	return BP_Groups_Member::get_category_ids( $user_id, $pag_num, $pag_page );
 }
 
 function cp_categories_total_categories_for_user( $user_id = 0 ) {
-
+	
 	if ( empty( $user_id ) )
 		$user_id = ( bp_displayed_user_id() ) ? bp_displayed_user_id() : bp_loggedin_user_id();
-
+	
 	if ( !$count = wp_cache_get( 'cp_total_categories_for_user_' . $user_id, 'cp' ) ) {
 		$count = BP_Groups_Member::total_category_count( $user_id );
 		wp_cache_set( 'cp_total_categories_for_user_' . $user_id, $count, 'cp' );
 	}
-
+	
 	return $count;
 }
 
 function cp_categories_check_category_exists( $slug, $parent_slug = '' ) {
 	$category_exists = false;
-
+	
 	if ( empty( $slug ) ) 
 		return false;
-		
+	
 	$category_exists = (bool) CP_Category::category_exists( $slug );
 	
 	if ( $category_exists && !empty( $parent_slug ) ) {
@@ -284,3 +284,25 @@ function cp_do_404( $redirect = 'remove_canonical_direct' ) {
 	if ( 'remove_canonical_direct' == $redirect )
 		remove_action( 'template_redirect', 'redirect_canonical' );
 }
+
+function cp_categories_head() {
+	if ( cp_is_posts_component() ) {
+		$cur_category_slug = cp_current_category_slug();
+		$cur_category = cp_categories_get_category( array( 'slug' => $cur_category_slug ) );
+		
+		echo '<meta name="keywords" content="' . $cur_category->name . '"/>' . PHP_EOL;
+		echo '<meta name="description" content="' . $cur_category->desc . '"/>' . PHP_EOL;
+	}
+}
+add_action ( 'cp_head', 'cp_categories_head' );
+
+function cp_categories_title( $title, $sep, $seplocation ) {
+	if ( cp_is_posts_component() ) {
+		$cur_category_slug = cp_current_category_slug();
+		$cur_category = cp_categories_get_category( array( 'slug' => $cur_category_slug ) );
+		
+		return $cur_category->name . $sep;
+	}
+	return $title;
+}
+add_filter( 'wp_title', 'cp_categories_title', 10, 3 );

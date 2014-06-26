@@ -7,6 +7,7 @@ if ( !defined( 'ABSPATH' ) ) exit;
 add_action( 'admin_init',              'cp_admin_init' );
 add_action( 'admin_head',              'cp_admin_head'                    );
 add_action( 'cp_admin_init', 'cp_setup_updater',          1000 );
+add_action( 'cp_admin_init', 'cp_register_admin_settings'      );
 
 /**
  * Piggy back admin_init action

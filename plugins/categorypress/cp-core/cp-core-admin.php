@@ -68,7 +68,7 @@ class CP_Admin {
 	
 	public function modify_plugin_action_links( $links, $file ) {
 
-		// Return normal links if not BuddyPress
+		// Return normal links if not categorypress
 		if ( plugin_basename( categorypress()->file ) != $file )
 			return $links;
 
@@ -147,6 +147,15 @@ class CP_Admin {
 		foreach( $hooks as $hook ) {
 			add_action( "admin_head-$hook", 'cp_core_modify_admin_menu_highlight' );
 		}
+	}
+	
+	public function register_admin_settings() {
+	
+		// Add the main section
+		add_settings_section( 'cp_main',           __( 'Main Settings',    'categorypress' ), 'cp_admin_setting_callback_main_section',     'categorypress'            );
+		add_settings_field( 'cp-meta-ed2k-name',   __( 'ed2k',  'categorypress' ),  'cp_admin_setting_callback_meta_ed2k_settings',     'categorypress', 'cp_main' );
+		add_settings_field( 'cp-meta-magnet-name', __( 'magnet',  'categorypress' ), 'cp_admin_setting_callback_meta_maget_settings',     'categorypress', 'cp_main' );
+		
 	}
 	
 	public function admin_bar_about_link( $wp_admin_bar ) {

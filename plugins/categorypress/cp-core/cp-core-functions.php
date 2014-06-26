@@ -544,3 +544,19 @@ function cp_admin_list_table_current_bulk_action() {
 	
 	return $action;
 }
+
+function cp_core_redirect( $location, $status = 302 ) {
+	
+	// On some setups, passing the value of wp_get_referer() may result in an
+	// empty value for $location, which results in an error. Ensure that we
+	// have a valid URL.
+	if ( empty( $location ) )
+		$location = cp_get_root_domain();
+	
+	// Make sure we don't call status_header() in bp_core_do_catch_uri() as this
+	// conflicts with wp_redirect() and wp_safe_redirect().
+	categorypress()->no_status_set = true;
+	
+	wp_safe_redirect( $location, $status );
+	die;
+}

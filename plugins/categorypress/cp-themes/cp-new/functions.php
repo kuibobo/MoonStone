@@ -40,7 +40,7 @@ function cp_dtheme_show_pagination( $url_pattern, $page_index, $page_size, $data
 					'is_current'   => $page_index == $page );
 	}
 	?>
-	<div class="pagination pull-right"><ul class="pagination">
+	<div class="pull-right"><ul class="pagination">
 	<?php 
 	if ( 1 != $start_index ) :
 	?>

@@ -236,7 +236,7 @@ class CP_Category {
 		}
 		
 		// Sanitize 'order'
-		$order = bp_esc_sql_order( $order );
+		$order = cp_esc_sql_order( $order );
 		
 		// Convert 'orderby' into the proper ORDER BY term
 		$orderby = self::convert_orderby_to_order_by_term( $orderby );
@@ -249,7 +249,7 @@ class CP_Category {
 		}
 		
 		if ( ! empty( $r['per_page'] ) && ! empty( $r['page'] ) ) {
-			$sql['pagination'] = $wpdb->prepare( "LIMIT %d, %d", intval( ( $r['page'] - 1 ) * $r['per_page']), intval( $r['per_page'] ) );
+			$sql['pagination'] = $wpdb->prepare( "LIMIT %d, %d", intval( ( $r['page'] - 1 ) * $r['per_page'] ), intval( $r['per_page'] ) );
 		}
 		
 		// Get paginated results

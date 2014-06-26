@@ -92,3 +92,7 @@ function cp_core_admin_tabs( $active_tab = '' ) {
 	// Do other fun things
 	do_action( 'cp_admin_tabs' );
 }
+
+function cp_register_admin_settings() {
+	do_action( 'cp_register_admin_settings' );
+}

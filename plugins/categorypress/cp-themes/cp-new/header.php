@@ -13,16 +13,16 @@
 <div id="main" class="wide-bg-dark clearfix">
 	<section class="page-top">
 		<div class="container col-media-main">
-			<div class="logo"><a href="http://www.cssmoban.com/">模板之家</a></div>
+			<div class="logo"><a href="http://www.cssmoban.com/"><?php bloginfo( 'name' );?></a></div>
 			<nav class="menu">
 				<ul>
-					<li><a href="http://www.cssmoban.com/" target="_parent">首页</a></li>
-					<li><a href="http://www.cssmoban.com/cssthemes/" class="active" target="_parent">网站模板</a></li>
-					<li><a href="http://www.cssmoban.com/wpthemes/" class="active" target="_parent">WP模板</a></li>
-					<li><a href="http://www.cssmoban.com/tags.asp" target="_parent">模板标签</a></li>
-					<li><a href="http://jianzhan.cssmoban.com/" target="_parent">建站超市</a></li>
-					<li><a href="http://www.cssmoban.com/showcase/" target="_parent">酷站欣赏</a></li>
-					<li><a href="http://www.cssmoban.com/wpthemes/wphost.shtml" target="_parent">WP主机</a></li>
+				<?php
+				$datas = cp_categories_get_categories( array( 'parent_id' => 52 ) );
+				$categories = $datas['categories'];
+				foreach ( $categories as $category ) : ?>
+					<li><a href="<?php echo cp_categories_get_permalink( $category->slug ) ;?>" target="_parent"><?php echo $category->name;?></a></li>
+				<?php
+				endforeach;?>
 				</ul>
 			</nav>
 			<div class="search">

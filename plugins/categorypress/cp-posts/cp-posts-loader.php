@@ -107,6 +107,7 @@ class CP_Posts_Component extends CP_Component {
 					return;
 				}
 				
+				$cp->is_single_item  = true;
 			} else {
 				$cp->is_single_item  = false;
 				
