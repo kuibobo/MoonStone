@@ -50,13 +50,6 @@
 							</div>
 							<div class="con-right">
 								<h1><?php echo $post->name;?></h1>
-                                    <div class="hits">
-                                        <i class="icon-hit"></i>views<i class="icon-fav"></i>
-										<span id="bdshare" style="float: none;" class="bdshare_b">收藏</span>
-										<i class="icon-like"></i><span id="s5238"></span>
-										<b id="d5238"><a href="javascript:digg(1,5238,'/');">很漂亮</a></b>
-										<i class="icon-unlike"></i><span id="c5238"></span>
-										<b id="d5238"><a href="javascript:cai(1,5238,'/');">很差劲</a></b></div>
 									<div class="desc">
 										<p>
 										<?php
@@ -89,7 +82,7 @@
 					
 					<div class="wide-main clearfix">
 						<div class="page-header">
-							<h2>您可能还对以下信息感兴趣</h2>
+							<h2>您可能还对以下内容感兴趣</h2>
 						</div>
 						<div class="page-article">
 						<div class="page">
