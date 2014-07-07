@@ -292,6 +292,7 @@ class CP_Post {
 		
 		
 		$sql['select'] = "SELECT COUNT(DISTINCT p.id)";
+		$sql['pagination'] = "";
 		$total_sql     = apply_filters( 'cp_posts_get_total_posts_sql', join( ' ', (array) $sql ), $sql, $r );
 		$total_posts  = $wpdb->get_var( $total_sql );
 		

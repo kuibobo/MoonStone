@@ -121,7 +121,7 @@ function cp_categories_update_categorymeta( $category_id, $meta_key, $meta_value
 	return true;
 }
 
-function cp_categories_get_permalink( $slug, $type = false, $ignore_crumb = false ) {
+function cp_categories_get_permalink( $slug, $parent_category, $city_category, $type = false, $ignore_crumb = false ) {
 	
 	switch( $type ) {
 		
@@ -139,13 +139,13 @@ function cp_categories_get_permalink( $slug, $type = false, $ignore_crumb = fals
 				if ( !empty( $cur_price ) )
 					$cur_price .= '/';
 				
-				$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. cp_current_city_slug() . '/' . $slug . '/' . $cur_area . $cur_price;
+				$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. $city_category . '/' . $slug . '/' . $cur_area . $cur_price;
 			} else {
 				
-				if ( cp_current_city_slug() == $slug )
+				if ( $city_category == $slug )
 					$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/' . $slug;
 				else
-					$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/' . cp_current_city_slug() . '/' . $slug;
+					$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/' . $city_category . '/' . $slug;
 			}
 			break;
 		
@@ -155,7 +155,7 @@ function cp_categories_get_permalink( $slug, $type = false, $ignore_crumb = fals
 			if ( !empty( $cur_price ) )
 				$cur_price .= '/';
 			
-			$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. cp_current_city_slug() . '/' . cp_current_category_slug() . '/' . $slug . '/' . $cur_price;
+			$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. $city_category . '/' . $parent_category . '/' . $slug . '/' . $cur_price;
 			break;
 		
 		case CP_CategoryType::$PRICE:
@@ -165,12 +165,12 @@ function cp_categories_get_permalink( $slug, $type = false, $ignore_crumb = fals
 			if ( !empty( $cur_area ) )
 				$cur_area .= '/';
 			
-			$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. cp_current_city_slug() . '/' . cp_current_category_slug() . '/' . $cur_area . $slug . '/';
+			$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. $city_category . '/' . $parent_category . '/' . $cur_area . $slug . '/';
 			break;
 		
 	}		
 	
-	return apply_filters_ref_array( 'cp_categories_get_permalink', array( $link, &$slug, &$type ) );
+	return $link;
 }
 
 function cp_categories_get_parent( $args = '' ) {

@@ -8,10 +8,11 @@
 				$chunks = array_filter( $chunks );
 				
 				if ( count( $chunks ) == 4 )
-					$page_index = $chunks[4];
+					$page_index = (int) $chunks[4];
 				else
 					$page_index = 1;
 
+				$chunks[count($chunks)] = '%d';
 				$url_pattern = cp_get_root_domain() . '/' . join( '/', $chunks);
 
 				// get data

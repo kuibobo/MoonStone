@@ -17,10 +17,12 @@
 			<nav class="menu">
 				<ul>
 				<?php
+				$category_slug = cp_current_category_slug();
+				$city_slug = cp_current_city_slug();
 				$datas = cp_categories_get_categories( array( 'parent_id' => 52 ) );
 				$categories = $datas['categories'];
 				foreach ( $categories as $category ) : ?>
-					<li><a href="<?php echo cp_categories_get_permalink( $category->slug ) ;?>" target="_parent"><?php echo $category->name;?></a></li>
+					<li><a href="<?php echo cp_categories_get_permalink( $category->slug, $category_slug, $city_slug ) ;?>" target="_parent"><?php echo $category->name;?></a></li>
 				<?php
 				endforeach;?>
 				</ul>

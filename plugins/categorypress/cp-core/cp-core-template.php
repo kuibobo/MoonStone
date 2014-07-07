@@ -132,12 +132,14 @@ function cp_current_post_id() {
 
 function cp_get_category_crumbs() {
 	$category = cp_current_category();
+	$category_slug = cp_current_category_slug();
+	$city_slug = cp_current_city_slug();
 	$parent_category = cp_categories_get_category( array( 'id' => $category->id ) );
 	
 	$crumbs = array();
 	while( !empty( $parent_category->id ) ) {
 		$obj = new stdClass();
-		$obj->link = cp_categories_get_permalink( $parent_category->slug, CP_CategoryType::$NORMAL, true);
+		$obj->link = cp_categories_get_permalink( $parent_category->slug, $category_slug, $city_slug, CP_CategoryType::$NORMAL, true);
 		$obj->name = $parent_category->name;
 		
 		$crumbs[] = $obj;
@@ -148,7 +150,7 @@ function cp_get_category_crumbs() {
 	$category = cp_categories_get_category( array( 'slug' => $city_slug ) );
 	
 	$obj = new stdClass();
-	$obj->link = cp_categories_get_permalink( $category->slug, CP_CategoryType::$NORMAL, true);
+	$obj->link = cp_categories_get_permalink( $category->slug, $category_slug, $city_slug, CP_CategoryType::$NORMAL, true);
 	$obj->name = $category->name;
 	
 	$crumbs[] = $obj;

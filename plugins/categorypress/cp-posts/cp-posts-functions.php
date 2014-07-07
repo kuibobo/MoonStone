@@ -243,7 +243,7 @@ function cp_posts_get_prev_post( $post_id ) {
 	if ( empty( $post_id ) )
 		return false;
 		
-	$sql = $wpdb->prepare( "select * from {$cp->posts->table_name} where id < %d limit 0,1", $post_id );	
+	$sql = $wpdb->prepare( "select * from {$cp->posts->table_name} where id < %d order by id desc limit 0,1", $post_id );	
 	if ( $field = $wpdb->get_row( $sql ) ) {
 		$post = new CP_Post();
 		$post->id             = $field->id;
