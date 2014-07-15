@@ -22,7 +22,8 @@
 							'price_from'     => 0,
 							'price_to'       => 0,
 							'status'         => 0,
-							'page'           => $page_index
+							'page'           => $page_index,
+							'per_page'       => 10
 						) );
 				$posts = $datas['posts'];?>
 

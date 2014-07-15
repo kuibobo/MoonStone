@@ -38,7 +38,7 @@ img.thumbImgs{display:block;background:url(/statics/images/loading.gif) no-repea
 .in-ads-218{width:218px;height:310px;overflow:hidden;padding-left:7px;display:none}
 .in-side-menu{padding:11px 0 0 9px}
 .in-side-menu h2{font-size:18px;line-height:30px;font-weight:500;height:30px}
-.in-side-menu .pbutton a{width:65px}
+.in-side-menu .pbutton a{width:290px}
 .in-side-menu .color a{width:48px}
 .in-ads-970{width:960px;margin:0 8px 0 7px;height:156px}
 .in-ads-314{width:314px;height:170px;overflow:hidden;margin:-7px auto;border-radius:3px}
@@ -157,7 +157,10 @@ article{width:auto;float:none}
 .thumbItem li img{width:234px;height:167px;display:block}
 .thumbItem li p{height:43px;line-height:43px;padding-left:0px;overflow:hidden}
 .thumbItem li .excerpt{height:96px;line-height: 24px}
-.thumbItem.small li p{height:33px;line-height:33px;width:218px}
+.thumbItem.small li{background:#fff;float:left;width:111px;}
+.thumbItem.small li p{height:66px;line-height:16px;width:111px}
+.thumbItem.small li img{width:111px;}
+
 .thumbItem.large li{background:#fff;float:left;width:300px;}
 .thumbItem.large li a{}
 .thumbItem.large li img{width:300px;height:214px}

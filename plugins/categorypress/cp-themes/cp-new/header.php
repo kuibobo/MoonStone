@@ -13,12 +13,11 @@
 <div id="main" class="wide-bg-dark clearfix">
 	<section class="page-top">
 		<div class="container col-media-main">
-			<div class="logo"><a href="http://www.cssmoban.com/"><?php bloginfo( 'name' );?></a></div>
+			<div class="logo"><a href="<?php echo cp_get_root_domain();?>"><?php bloginfo( 'name' );?></a></div>
 			<nav class="menu">
 				<ul>
 				<?php
-				$category_slug = cp_current_category_slug();
-				$city_slug = cp_current_city_slug();
+				$city_slug = 'all';
 				$datas = cp_categories_get_categories( array( 'parent_id' => 52 ) );
 				$categories = $datas['categories'];
 				foreach ( $categories as $category ) : ?>
