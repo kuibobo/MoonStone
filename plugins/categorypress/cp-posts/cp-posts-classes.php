@@ -2,6 +2,15 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
+class CP_Post_Status {
+	
+	public static $APPROVED = 0;
+	public static $APPROVALPENDING = 1;
+	public static $BANNED = 2;
+	public static $DISAPPROVED = 3;
+	
+}
+
 class CP_Post {
 	public static $PRICES = array(
 								'p1' => array( 0, 300 ),
@@ -12,14 +21,12 @@ class CP_Post {
 								'p6' => array( 5000, 5000000 )
 								);
 	var $id;
-	var $parent;
 	var $author;
 	var $thumb;
 	var $date_created;
 	var $name;
 	var $excerpt;
 	var $price;
-	var $img_count;
 
 	function __construct( $id = null ) {
 		if ( !empty( $id ) )
@@ -33,24 +40,22 @@ class CP_Post {
 		if ( $field = $wpdb->get_row( $sql ) ) {
 			
 			$this->id             = $field->id;
-			$this->parent         = $field->parent;
 			$this->author         = $field->author;
 			$this->thumb          = $field->thumb;
 			$this->date_created   = $field->date_created;
 			$this->name           = $field->name;
 			$this->excerpt        = $field->excerpt;
 			$this->price          = $filed->price;
-			$this->img_count      = $filed->img_count;
 		}
 	}
 
 	public function save() {
 		global $wpdb, $cp;
 
-		if ( $this->exists() )
-			$sql_cmd = $wpdb->prepare( "UPDATE {$cp->posts->table_name} SET parent = %d, author = %d, thumb = %s, date_created = %d, name = %s, excerpt = %s, price = %d, img_count = %d WHERE id = %d", $this->parent, $this->author, $this->thumb, cp_core_current_time(), $this->name, $this->excerpt, $this->price, $this->img_count, $this->id );
+		if ( CP_Post::post_exists( $this->id ) )
+			$sql_cmd = $wpdb->prepare( "UPDATE {$cp->posts->table_name} SET author = %d, thumb = %s, date_created = %d, name = %s, excerpt = %s, price = %d WHERE id = %d", $this->author, $this->thumb, cp_core_current_time(), $this->name, $this->excerpt, $this->price, $this->id );
 		else
-			$sql_cmd = $wpdb->prepare( "INSERT INTO {$cp->posts->table_name} (parent, author, thumb = %s, date_created, name, excerpt, price, img_count) VALUES (%d, %d, %s, %s, %s, %d, %d)", $this->parent, $this->author, $this->thumb, cp_core_current_time(), $this->name, $this->excerpt, $this->price, $this->img_count );
+			$sql_cmd = $wpdb->prepare( "INSERT INTO {$cp->posts->table_name} (author, thumb, date_created, name, excerpt, price) VALUES (%d, %s, %s, %s, %s, %d)", $this->author, $this->thumb, cp_core_current_time(), $this->name, $this->excerpt, $this->price );
 
 
 		if ( false === $wpdb->query($sql_cmd) )
@@ -65,7 +70,7 @@ class CP_Post {
 	}
 		
 	public function delete( $id = null ) {
-		global $wpdb, $ppy;
+		global $wpdb, $cp;
 		
 		if ( empty( $id ) )
 			$id = $this->id;
@@ -92,7 +97,7 @@ class CP_Post {
 	public static function post_exists( $post_id ) {
 		global $wpdb, $cp;
 				
-		if ( empty( $slug ) )
+		if ( empty( $post_id ) )
 			return false;
 			
 		$retval = $wpdb->get_row( $wpdb->prepare( "SELECT id FROM {$cp->posts->table_name} WHERE id = %d", $post_id ) );
@@ -194,6 +199,7 @@ class CP_Post {
 			'area_id'         => false,
 			'price_from'      => false,
 			'price_to'        => false,
+		//	'status'          => false,
 			'per_page'        => 20,       // The number of results to return per page
 			'page'            => 1        // The page to return if limiting per page
 		);
@@ -209,17 +215,20 @@ class CP_Post {
 		$tables[]   = "FROM {$cp->posts->table_name} p ";
 		$tables[]   = "JOIN {$cp->posts->table_name_pinc} pinc ON p.id = pinc.post_id";
 		
-		if ( !empty( $args['category_id'] ) ) 
+		if ( !empty( $r['category_id'] ) ) 
 			$clause[] = $wpdb->prepare( " pinc.category_id = %d", $r['category_id'] );
 		
-		if ( !empty( $args['area_id'] ) ) 
+		if ( !empty( $r['area_id'] ) ) 
 			$clause[] = $wpdb->prepare( " pinc.area_id = %d", $r['area_id'] );
 
-		if ( !empty( $args['price_from'] ) ) 
+		if ( !empty( $r['price_from'] ) ) 
 			$clause[] = $wpdb->prepare( " p.price >= %d", $r['price_from'] );
 
-		if ( !empty( $args['price_to'] ) ) 
+		if ( !empty( $r['price_to'] ) ) 
 			$clause[] = $wpdb->prepare( " p.price <= %d", $r['price_to'] );
+		
+		if ( isset( $r['status'] ) )
+			$clause[] = $wpdb->prepare( " p.status = %d",  $r['status'] );
 		
 		if ( ! empty( $r['search_terms'] ) ) {
 			$r['search_terms'] = esc_sql( like_escape( $r['search_terms'] ) );
@@ -283,6 +292,7 @@ class CP_Post {
 		
 		
 		$sql['select'] = "SELECT COUNT(DISTINCT p.id)";
+		$sql['pagination'] = "";
 		$total_sql     = apply_filters( 'cp_posts_get_total_posts_sql', join( ' ', (array) $sql ), $sql, $r );
 		$total_posts  = $wpdb->get_var( $total_sql );
 		

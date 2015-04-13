@@ -62,6 +62,19 @@ class CP_Core extends CP_Component {
 		if ( empty( $cp->pages ) )
 			$cp->pages = cp_core_get_directory_pages();
 	}
+	
+	public function includes( $includes = array() ) {
+		
+		if ( !is_admin() )
+			return;
+		
+		$includes = array(
+				'admin'
+				);
+		
+		parent::includes( $includes );
+	}
+	
 }
 
 /**

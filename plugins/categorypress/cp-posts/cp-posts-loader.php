@@ -22,7 +22,7 @@ class CP_Posts_Component extends CP_Component {
 	function __construct() {
 		parent::start(
 			'posts',
-			__( 'posts', 'categorypress' ),
+			__( 'Posts', 'categorypress' ),
 			CP_PLUGIN_DIR
 		);
 	}
@@ -97,8 +97,22 @@ class CP_Posts_Component extends CP_Component {
 				return;
 			}
 			
-			if ( $post_id = CP_Post::post_exists( cp_current_post() ) ) {
+			if ( $post_id = CP_Post::post_exists( cp_current_post_id() ) ) {
 				
+				if ( $this->category_verifed == true )
+					$this->category_verifed = cp_categories_check_category_exists( $categories[1] );
+					
+				if ( $this->category_verifed == false ) {
+					cp_do_404();
+					return;
+				}
+				
+				$cp->is_single_item  = true;
+			} else {
+				$cp->is_single_item  = false;
+				
+				cp_do_404();
+				return;
 			}
 		} 
 	}
@@ -107,8 +121,8 @@ class CP_Posts_Component extends CP_Component {
 		
 		/** is single page ********************/
 		if ( $this->category_verifed && cp_is_posts_component() ) {
-			$post = cp_current_post();
-			if ( empty( $post ) ) 
+			$post_id = cp_current_post_id();
+			if ( empty( $post_id ) ) 
 				$screen_function = 'cp_posts_screen_category';
 			else
 				$screen_function = 'cp_posts_screen_single';

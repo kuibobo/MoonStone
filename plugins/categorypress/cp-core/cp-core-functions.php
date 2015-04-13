@@ -191,7 +191,11 @@ function cp_core_get_directory_page_ids() {
 		}
 	}
 	
-	return apply_filters( 'cp_core_get_directory_page_ids', $page_ids );
+	return $page_ids;
+}
+
+function cp_core_update_directory_page_ids( $blog_page_ids ) {
+	cp_update_option( 'cp-pages', $blog_page_ids );
 }
 
 /**
@@ -493,4 +497,66 @@ function cp_core_do_network_admin() {
 		$retval = false;
 	
 	return (bool) apply_filters( 'cp_core_do_network_admin', $retval );
+}
+
+
+function cp_admin_url( $path = '', $scheme = 'admin' ) {
+	echo cp_get_admin_url( $path, $scheme );
+}
+	/**
+	 * Return the correct admin URL based on BuddyPress and WordPress configuration.
+	 *
+	 * @since BuddyPress (1.5.0)
+	 *
+	 * @uses bp_core_do_network_admin()
+	 * @uses network_admin_url()
+	 * @uses admin_url()
+	 *
+	 * @param string $path Optional. The sub-path under /wp-admin to be
+	 *        appended to the admin URL.
+	 * @param string $scheme The scheme to use. Default is 'admin', which
+	 *        obeys {@link force_ssl_admin()} and {@link is_ssl()}. 'http'
+	 *        or 'https' can be passed to force those schemes.
+	 * @return string Admin url link with optional path appended.
+	 */
+	function cp_get_admin_url( $path = '', $scheme = 'admin' ) {
+
+		// Links belong in network admin
+		if ( cp_core_do_network_admin() ) {
+			$url = network_admin_url( $path, $scheme );
+
+		// Links belong in site admin
+		} else {
+			$url = admin_url( $path, $scheme );
+		}
+
+		return $url;
+	}
+	
+function cp_admin_list_table_current_bulk_action() {
+	
+	$action = ! empty( $_REQUEST['action'] ) ? $_REQUEST['action'] : '';
+	
+	// If the bottom is set, let it override the action
+	if ( ! empty( $_REQUEST['action2'] ) && $_REQUEST['action2'] != "-1" ) {
+		$action = $_REQUEST['action2'];
+	}
+	
+	return $action;
+}
+
+function cp_core_redirect( $location, $status = 302 ) {
+	
+	// On some setups, passing the value of wp_get_referer() may result in an
+	// empty value for $location, which results in an error. Ensure that we
+	// have a valid URL.
+	if ( empty( $location ) )
+		$location = cp_get_root_domain();
+	
+	// Make sure we don't call status_header() in bp_core_do_catch_uri() as this
+	// conflicts with wp_redirect() and wp_safe_redirect().
+	categorypress()->no_status_set = true;
+	
+	wp_safe_redirect( $location, $status );
+	die;
 }

@@ -12,6 +12,15 @@
 // Exit if accessed directly
 if ( !defined( 'ABSPATH' ) ) exit;
 
+function cp_posts_get_status() {
+	return array(
+			CP_Post_Status::$APPROVED => 'Approved' ,
+			CP_Post_Status::$APPROVALPENDING => 'ApprovalPending' ,
+			CP_Post_Status::$BANNED => 'Banned' ,
+			CP_Post_Status::$DISAPPROVED => 'Disapproved' 
+			);
+}
+
 function cp_post_add( $args = '' ) {
 	global $user_ID;
 	
@@ -171,4 +180,105 @@ function cp_posts_get_posts( $args = '' ) {
 	$posts = CP_Post::get( $args );
 	
 	return apply_filters_ref_array( 'cp_posts_get_posts', array( &$posts, &$r ) );
+}
+
+function cp_posts_update_status( $post_id, $status ) {
+	global $wpdb, $cp;
+	
+	if ( empty( $post_id ) || !is_numeric( $status ) )
+		return false;
+	
+	return $wpdb->query( $wpdb->prepare( "UPDATE {$cp->posts->table_name} SET status = %d WHERE id = %d ", $status, $post_id ) );
+}
+
+function cp_posts_get_permalink( $city_slug, $category_slug, $post_id ) {
+	
+	$link = cp_get_root_domain() . '/' . CP_POSTS_SLUG . '/'. $city_slug . '/' . $category_slug . '/' . $post_id . '.shtml';
+	
+	return $link;
+}
+
+function cp_posts_set_category( $post_id, $category_id, $area_id = 0, $level = 0 ) {
+	global $wpdb, $cp;
+	
+	if ( empty( $post_id ) || empty( $category_id ) )
+		return false;
+	
+	$exists = (bool) $wpdb->get_var( $wpdb->prepare( "SELECT id FROM {$cp->posts->table_name_pinc} WHERE category_id = %d AND area_id = %d AND post_id = %d AND level = %d", $category_id, $area_id, $post_id, $level ) );
+	
+	if ( !$exists )
+		return $wpdb->query( $wpdb->prepare( "INSERT INTO {$cp->posts->table_name_pinc} (category_id, area_id, post_id, level) VALUES(%d, %d, %d, %d)", $category_id, $area_id, $post_id, $level ) );
+}
+
+function cp_posts_get_parent_category_id( $post_id, $level = 0 ) {
+	global $wpdb, $cp;
+	return (int) $wpdb->get_var( $wpdb->prepare( "SELECT category_id FROM {$cp->posts->table_name_pinc} WHERE post_id = %d AND level = %d",  $post_id, $level ) );
+}
+
+function cp_posts_head() {
+	if ( cp_is_posts_component() && cp_is_single_item() ) {
+		$cur_post_id = cp_current_post_id();
+		$post = cp_posts_get_post( array( 'post_id' => $cur_post_id ) );
+		
+		echo '<meta name="keywords" content="' . $post->name . '"/>' . PHP_EOL;
+		echo '<meta name="description" content="' . $post->excerpt . '"/>' . PHP_EOL;
+	}
+}
+add_action ( 'cp_head', 'cp_posts_head' );
+
+function cp_posts_title( $title, $sep, $seplocation ) {
+	if ( cp_is_posts_component() && cp_is_single_item() ) {
+		$cur_post_id = cp_current_post_id();
+		$post = cp_posts_get_post( array( 'post_id' => $cur_post_id ) );
+		
+		return $post->name . $sep;
+	}
+	return $title;
+}
+add_filter( 'wp_title', 'cp_posts_title', 10, 3 );
+
+function cp_posts_get_prev_post( $post_id ) {
+	global $wpdb, $cp;
+	
+	if ( empty( $post_id ) )
+		return false;
+		
+	$sql = $wpdb->prepare( "select * from {$cp->posts->table_name} where id < %d order by id desc limit 0,1", $post_id );	
+	if ( $field = $wpdb->get_row( $sql ) ) {
+		$post = new CP_Post();
+		$post->id             = $field->id;
+		$post->author         = $field->author;
+		$post->thumb          = $field->thumb;
+		$post->date_created   = $field->date_created;
+		$post->name           = $field->name;
+		$post->excerpt        = $field->excerpt;
+		$post->price          = $filed->price;
+		
+		return $post;
+	}
+	
+	return null;
+}
+
+function cp_posts_get_next_post( $post_id ) {
+	global $wpdb, $cp;
+	
+	if ( empty( $post_id ) )
+		return false;
+	
+	$sql = $wpdb->prepare( "select * from {$cp->posts->table_name} where id > %d limit 0,1", $post_id );	
+	if ( $field = $wpdb->get_row( $sql ) ) {
+		$post = new CP_Post();
+		$post->id             = $field->id;
+		$post->author         = $field->author;
+		$post->thumb          = $field->thumb;
+		$post->date_created   = $field->date_created;
+		$post->name           = $field->name;
+		$post->excerpt        = $field->excerpt;
+		$post->price          = $filed->price;
+		
+		return $post;
+	}
+	
+	return null;
 }

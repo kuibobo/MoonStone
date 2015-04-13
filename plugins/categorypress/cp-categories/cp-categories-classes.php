@@ -32,7 +32,7 @@ class CP_Category {
 			$this->name              = $field->name;
 			$this->description       = $field->description;
 			$this->slug              = $field->slug;
-			$this->type              = $filed->type;
+			$this->type              = $field->type;
 			$this->date_created      = $field->date_created;
 		}
 	}
@@ -43,7 +43,7 @@ class CP_Category {
 		if ( $this->exists() )
 			$sql_cmd = $wpdb->prepare( "UPDATE {$cp->categories->table_name} SET name = %s, description = %s, slug = %s, type = %d, date_created = %s WHERE id = %d", $this->name, $this->description, $this->slug, $this->type, cp_core_current_time(), $this->id );
 		else
-			$sql_cmd = $wpdb->prepare( "INSERT INTO {$cp->categories->table_name} (name, description, slug, type, date_created) VALUES (%d, %s, %s, %s, %d, %s)", $this->name, $this->description, $this->slug, $this->type, cp_core_current_time() );
+			$sql_cmd = $wpdb->prepare( "INSERT INTO {$cp->categories->table_name} (name, description, slug, type, date_created) VALUES (%s, %s, %s, %d, %s)", $this->name, $this->description, $this->slug, $this->type, cp_core_current_time() );
 
 		if ( false === $wpdb->query($sql_cmd) )
 			return false;
@@ -189,24 +189,40 @@ class CP_Category {
 
 	public static function get( $args = array() ) {
 		global $wpdb, $cp;
-			
+					
+		$defaults = array(
+				'type'            => '',    // active, newest, alphabetical, random, popular, most-forum-topics or most-forum-posts
+				'order'           => 'DESC',   // 'ASC' or 'DESC'
+				'orderby'         => 'date_created', // date_created, last_activity, total_member_count, name, random
+				'parent_id'       => 0,
+				'per_page'        => 20,       // The number of results to return per page
+				'page'            => 1        // The page to return if limiting per page
+				);
+		
+		$r = wp_parse_args( $args, $defaults );
+		
 		$sql       = array();
 		$total_sql = array();
 		
 		$sql['select'] = "SELECT *";
 		$sql['from']   = " FROM {$cp->categories->table_name} c";
-		$sql['category_join'] = " JOIN {$cp->categories->table_name_c_in_c} cc ON cc.child_id = c.id";
 		
-		$sql['parent_where'] =  $wpdb->prepare( "WHERE cc.parent_id = %d", $args['parent_id'] );
-		$sql['type_where'] =  $wpdb->prepare( " AND c.type = %d", $args['type'] );
+		
+		if ( !empty( $r['parent_id'] ) ) {
+			$sql['category_join'] = " JOIN {$cp->categories->table_name_c_in_c} cc ON cc.child_id = c.id";
+			$sql['parent_where'] =  $wpdb->prepare( "WHERE cc.parent_id = %d", $r['parent_id'] );
+		}
+		
+		if ( $r['type'] != '' )
+			$sql['type_where'] =  $wpdb->prepare( " AND c.type = %d", $r['type'] );
 		
 		/** Order/orderby ********************************************/
 		
-		$order   = $args['order'];
-		$orderby = $args['orderby'];
+		$order   = $r['order'];
+		$orderby = $r['orderby'];
 
 	
-		$order_orderby = self::convert_type_to_order_orderby( $args['type'] );
+		$order_orderby = self::convert_type_to_order_orderby( $r['type'] );
 		
 		// If an invalid type is passed, $order_orderby will be
 		// an array with empty values. In this case, we stick
@@ -220,7 +236,7 @@ class CP_Category {
 		}
 		
 		// Sanitize 'order'
-		$order = bp_esc_sql_order( $order );
+		$order = cp_esc_sql_order( $order );
 		
 		// Convert 'orderby' into the proper ORDER BY term
 		$orderby = self::convert_orderby_to_order_by_term( $orderby );
@@ -232,17 +248,18 @@ class CP_Category {
 			$sql[] = "ORDER BY {$orderby} {$order}";
 		}
 		
-		if ( ! empty( $args['per_page'] ) && ! empty( $args['page'] ) ) {
-			$sql['pagination'] = $wpdb->prepare( "LIMIT %d, %d", intval( ( $args['page'] - 1 ) * $args['per_page']), intval( $args['per_page'] ) );
+		if ( ! empty( $r['per_page'] ) && ! empty( $r['page'] ) ) {
+			$sql['pagination'] = $wpdb->prepare( "LIMIT %d, %d", intval( ( $r['page'] - 1 ) * $r['per_page'] ), intval( $r['per_page'] ) );
 		}
 		
 		// Get paginated results
 		$paged_categories_sql = join( ' ', (array) $sql );
 		$paged_categories     = $wpdb->get_results( $paged_categories_sql );
 		
-		$sql['select'] = "SELECT COUNT(DISTINCT c.id) FROM {$cp->categories->table_name} c";
+		$sql['select'] = "SELECT COUNT(DISTINCT c.id) ";
+		$sql['pagination'] = '';
 		$total_categories_sql = join( ' ', (array) $sql );
-		$total_categories     = $wpdb->get_results( $total_categories_sql );
+		$total_categories     = $wpdb->get_var( $total_categories_sql );
 		
 		unset( $sql );
 		

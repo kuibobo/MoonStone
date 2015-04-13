@@ -29,7 +29,7 @@ function cp_is_current_component( $component ) {
 	
 	if ( empty( $component ) )
 		return false;
-		
+	
 	if ( !empty( $cp->current_component ) ) {
 		
 		if ( $cp->current_component == $component )
@@ -49,7 +49,7 @@ function cp_current_categories() {
 }
 
 function cp_current_category() {
- 
+	
 	$slug = cp_current_category_slug();
 	
 	if ( !empty( $slug ) ) 
@@ -66,7 +66,7 @@ function cp_current_category_slug() {
 	
 	if ( count( $cp->current_categories ) > 1 ) 
 		return $cp->current_categories[ 1 ];	
-		
+	
 	return false;
 }
 
@@ -75,7 +75,7 @@ function cp_current_city_slug() {
 	
 	if ( empty( $cp->current_categories ) )
 		return '';
-		
+	
 	return $cp->current_categories[0];
 }
 
@@ -84,7 +84,7 @@ function cp_current_area_slug() {
 	
 	if ( empty( $cp->current_categories ) )
 		return '';
-		
+	
 	if ( count( $cp->current_categories ) > 2 ) {
 		foreach( CP_Post::$PRICES as $key => $value ) {
 			if ( $key == $cp->current_categories[ 2 ] )
@@ -114,16 +114,16 @@ function cp_current_price_slug() {
 	
 	if ( strlen( $slug ) > 2 ) 
 		$slug = substr( $slug, strlen( $slug ) - 2, 2);
-		
+	
 	foreach( CP_Post::$PRICES as $key => $value ) {
 		if ( $slug == $key )
 			return $slug;
 	}
-		
+	
 	return false;
 }
 
-function cp_current_post() {
+function cp_current_post_id() {
 	global $cp;
 	
 	$current_post = !empty( $cp->current_post ) ? $cp->current_post : '';
@@ -132,12 +132,14 @@ function cp_current_post() {
 
 function cp_get_category_crumbs() {
 	$category = cp_current_category();
+	$category_slug = cp_current_category_slug();
+	$city_slug = cp_current_city_slug();
 	$parent_category = cp_categories_get_category( array( 'id' => $category->id ) );
 	
 	$crumbs = array();
 	while( !empty( $parent_category->id ) ) {
 		$obj = new stdClass();
-		$obj->link = cp_categories_get_permalink( $parent_category->slug, CP_CategoryType::$NORMAL, true);
+		$obj->link = cp_categories_get_permalink( $parent_category->slug, $category_slug, $city_slug, CP_CategoryType::$NORMAL, true);
 		$obj->name = $parent_category->name;
 		
 		$crumbs[] = $obj;
@@ -148,13 +150,22 @@ function cp_get_category_crumbs() {
 	$category = cp_categories_get_category( array( 'slug' => $city_slug ) );
 	
 	$obj = new stdClass();
-	$obj->link = cp_categories_get_permalink( $category->slug, CP_CategoryType::$NORMAL, true);
+	$obj->link = cp_categories_get_permalink( $category->slug, $category_slug, $city_slug, CP_CategoryType::$NORMAL, true);
 	$obj->name = $category->name;
 	
 	$crumbs[] = $obj;
 	
 	$crumbs = array_reverse( $crumbs );
 	return $crumbs;
+}
+
+function cp_is_single_item() {
+	global $cp;
+	
+	if ( !empty( $cp->is_single_item ) )
+		return true;
+	
+	return false;
 }
 
 /**
@@ -187,18 +198,18 @@ function is_categorypress() {
 function cp_search_slug() {
 	echo cp_get_search_slug();
 }
-	/**
-	 * Return the search slug.
-	 *
-	 * @since BuddyPress (1.5.0)
-	 *
-	 * @return string The search slug. Default: 'search'.
-	 */
-	function cp_get_search_slug() {
-		return apply_filters( 'cp_get_search_slug', CP_SEARCH_SLUG );
-	}
-	
-	
+/**
+ * Return the search slug.
+ *
+ * @since BuddyPress (1.5.0)
+ *
+ * @return string The search slug. Default: 'search'.
+ */
+function cp_get_search_slug() {
+	return apply_filters( 'cp_get_search_slug', CP_SEARCH_SLUG );
+}
+
+
 /**
  * Is the current page a user page?
  *
@@ -230,13 +241,26 @@ function cp_displayed_user_id() {
 
 function cp_get_root_domain() {
 	global $cp;
-
+	
 	if ( isset( $cp->root_domain ) && !empty( $cp->root_domain ) ) {
 		$domain = $cp->root_domain;
 	} else {
 		$domain          = cp_core_get_root_domain();
 		$cp->root_domain = $domain;
 	}
-
+	
 	return apply_filters( 'cp_get_root_domain', $domain );
 }
+
+// Remove WP version info
+add_filter( 'the_generator','__return_false' );
+remove_action( 'wp_head', 'feed_links_extra', 3 ); // Display the links to the extra feeds such as category feeds
+remove_action( 'wp_head', 'feed_links', 2 ); // Display the links to the general feeds: Post and Comment Feed
+remove_action( 'wp_head', 'rsd_link' ); // Display the link to the Really Simple Discovery service endpoint, EditURI link
+remove_action( 'wp_head', 'wlwmanifest_link' ); // Display the link to the Windows Live Writer manifest file.
+remove_action( 'wp_head', 'index_rel_link' ); // index link
+remove_action( 'wp_head', 'parent_post_rel_link', 10, 0 ); // prev link
+remove_action( 'wp_head', 'start_post_rel_link', 10, 0 ); // start link
+remove_action( 'wp_head', 'adjacent_posts_rel_link', 10, 0 ); // Display relational links for the posts adjacent to the current post.
+remove_action( 'wp_head', 'wp_generator' ); // Display the XHTML generator that is generated on the wp_head hook, WP version
+
